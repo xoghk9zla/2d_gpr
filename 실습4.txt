@@ -1,0 +1,79 @@
+#include <GL/glut.h>
+
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+void Mouse(int button, int state, int x, int y);
+void TimerFunction(int value);
+
+struct Rect {
+	int x, y;
+	int shape;
+};
+Rect a[10];
+int cur = 0, end = 0;
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);    // glut 초기화
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);  // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);   // 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);    // 윈도우의 크기 지정 
+	glutCreateWindow("실습4");   // 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);    // 출력 함수의 지정 
+	glutMouseFunc(Mouse);			// 마우스 입력
+	glutTimerFunc(1000, TimerFunction, 1); // 타이머
+	glutReshapeFunc(reshape);   // 다시 그리기 함수 지정 
+	glutMainLoop();    // 이벤트 처리 시작 
+}
+
+GLvoid drawScene() {     // 출력 함수 
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);   // 설정된 색으로 젂체를 칠하기
+	glColor4f(0.25f, 0.75f, 0.5f, 1.0f);
+	for (int j = 0; j < end; ++j) {
+		glBegin(GL_LINE_LOOP);
+		if (a[j].shape == 0) {
+			glVertex2d(a[j].x, 600 - a[j].y);
+			glVertex2d(a[j].x, 600 - (a[j].y + 100));
+			glVertex2d(a[j].x + 40, 600 - (a[j].y + 100));
+			glVertex2d(a[j].x + 40, 600 - a[j].y);
+		}
+		else {
+			glVertex2d(a[j].x, 600 - a[j].y);
+			glVertex2d(a[j].x, 600 - (a[j].y + 40));
+			glVertex2d(a[j].x + 100, 600 - (a[j].y + 40));
+			glVertex2d(a[j].x + 100, 600 - a[j].y);
+		}
+		glEnd();
+	}
+	glFlush();      // 화면에 출력하기 
+}
+GLvoid reshape(int w, int h) {    // 다시 그리기 함수
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, w, 0.0, h, -1.0, 1.0);
+}
+void Mouse(int button, int state, int x, int y) {
+
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		a[cur].x = x;
+		a[cur].y = y;
+		++cur;
+		if (cur > 9) {
+			cur -= 10;
+			a[cur].shape = 0;
+		}
+		if (end < 10)
+			++end;		
+	}
+	glutPostRedisplay();
+}
+void TimerFunction(int value) {
+	for (int i = 0; i < end; ++i) {
+		if(a[i].shape == 1)
+			a[i].shape = 0;
+		else
+			a[i].shape = 1;
+	}
+	glutPostRedisplay();   // 화면 재 출력
+	glutTimerFunc(1000, TimerFunction, 1); // 타이머함수 재 설정  
+}

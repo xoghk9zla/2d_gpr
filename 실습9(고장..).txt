@@ -1,0 +1,80 @@
+#include <GL/glut.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define PIE 3.14
+#define MAX 10
+
+struct Circle {
+	int x1, x2, y, r[720], dr;
+	bool expand;
+};
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+void Mouse(int button, int state, int x, int y);
+void TimerFunction(int value);
+Circle object[10];
+int cur = 0, end = 0;
+
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);// glut 초기화
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);// 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);// 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);// 윈도우의 크기 지정 
+	glutCreateWindow("실습9");// 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);// 출력 함수의 지정 
+	glutMouseFunc(Mouse);	//마우스 입력 함수
+	glutReshapeFunc(reshape);	// 다시 그리기 함수 지정 
+	glutMainLoop();	// 이벤트 처리 시작 
+}
+GLvoid drawScene() {	// 출력 함수 
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);	// 설정된 색으로 전체를 칠하기
+	glColor4f(0.75f, 0.4f, 0.2f, 1.0f);
+	glBegin(GL_POINTS);
+	for (int k = 0; k < end; ++k) {
+
+		for (int i = 0; i < 720; ++i) {
+			if (i < 360)
+				glVertex2d(object[k].x1 + object[k].r[i] * (cos(i / (PIE * 2))), object[k].y + object[k].r[i] * (sin(i / (PIE * 2))));
+			else if (object[k].dr > 360)
+				glVertex2d(object[k].x2 + (object[k].r[i]-360) * (sin(i / (PIE * 2))), object[k].y + (object[k].r[i]-360) * (cos(i / (PIE * 2))));
+		}
+
+	}
+	glEnd();
+	glFlush();	// 화면에 출력하기 
+}
+GLvoid reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, w, 0.0, h, -1.0, 1.0);
+}
+void Mouse(int button, int state, int x, int y) {
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		object[cur%MAX].x1 = x;
+		object[cur%MAX].x2 = x + 355;
+		object[cur%MAX].y = 600 - y;
+		object[cur%MAX].dr = 0;
+		for (int i = 0; i < 720; ++i) {
+			object[cur%MAX].r[i] = 0;
+		}
+		++cur;
+		if (end < 10)
+			++end;
+		glutTimerFunc(0, TimerFunction, 1); // 타이머
+		glutPostRedisplay();
+	}
+}
+void TimerFunction(int value) {
+	for (int i = 0; i < end; ++i) {
+		
+			object[i].r[object[i].dr] = object[i].dr / 2;
+			++object[i].dr;
+		
+	}
+	glutPostRedisplay();
+	glutTimerFunc(10, TimerFunction, 1); // 타이머
+}

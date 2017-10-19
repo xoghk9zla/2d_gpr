@@ -1,0 +1,134 @@
+#include <GL/glut.h>
+#include <iostream>
+#include <list>
+#include <math.h>
+
+using namespace std;
+
+#define LEFT -400
+#define RIGHT 400
+#define TOP 300
+#define BOTTOM -300
+
+#define PIE	3.14
+
+#define TRANSLATE 123781
+#define ROTATE 123782
+#define SCALE 123783
+
+#define TRIANGLE 456121
+#define RECT 456122
+
+float size = 0.9;
+int cnt = 0;
+int shape = TRIANGLE;
+int State = 0;
+bool Expand = false;
+float xPos = 0.0, yPos = 0.0;
+float xScale = 1.0, yScale = 1.0;
+float xTrans = 0.0, yTrans = 0.0;
+float xRotate = 0.0, yRotate = 0.0;
+
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+void TimerFunction(int value);
+void Keyboard(unsigned char key, int x, int y);
+
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);    // glut 초기화
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);  // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);   // 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);    // 윈도우의 크기 지정 
+	glutCreateWindow("실습12");   // 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);    // 출력 함수의 지정 
+	glutKeyboardFunc(Keyboard);		// 키보드 입력
+	glutTimerFunc(100, TimerFunction, 1); // 타이머
+	glutReshapeFunc(reshape);   // 다시 그리기 함수 지정 
+	glutMainLoop();    // 이벤트 처리 시작 
+}
+
+GLvoid drawScene() {     // 출력 함수 
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);    // 바탕색을 'black' 로 지정
+	glClear(GL_COLOR_BUFFER_BIT);   // 설정된 색으로 젂체를 칠하기
+
+	glColor4f(0.3, 1.0, 0.7, 1.0);	// x, y축 색칠
+
+	glBegin(GL_LINES);
+
+	glVertex3f(LEFT, NULL, NULL);	// x축
+	glVertex3f(RIGHT, NULL, NULL);
+	glVertex3f(NULL, TOP, NULL);	// y축
+	glVertex3f(NULL, BOTTOM, NULL);
+
+	glEnd();
+
+	glMatrixMode(GL_MODELVIEW);
+
+	glPushMatrix();
+
+	glScalef(xScale, yScale, 0.0);
+
+	glPushMatrix();
+
+	glTranslatef(xPos, yPos, 0.0);
+
+	glPushMatrix();
+
+	glTranslatef(xTrans, yTrans, 0.0);
+	glRotatef(30, xRotate, yRotate, 0.0);
+
+	glColor4f(0.3, 0.0, 0.7, 1.0);	// 도형 색칠
+	if (shape == TRIANGLE) {
+		glBegin(GL_POLYGON);
+
+		glVertex2i(0, 20);
+		glVertex2i(-15, -10);
+		glVertex2i(15, -10);
+
+		glEnd();
+	}
+	else if (shape == RECT) {
+		glBegin(GL_POLYGON);
+
+		glVertex2i(20, 20);
+		glVertex2i(-20, 20);
+		glVertex2i(-20, -20);
+		glVertex2i(20, -20);
+
+		glEnd();
+	}
+
+	glPopMatrix();
+	glPopMatrix();
+	glPopMatrix();
+
+	glutSwapBuffers();      // 화면에 출력하기 
+}
+GLvoid reshape(int w, int h) {    // 다시 그리기 함수
+	glViewport(0, 0, w, h);
+	glOrtho(LEFT, RIGHT, BOTTOM, TOP, -1.0, 1.0);
+}
+void Keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 's':
+	case 'S':
+		if (shape == TRIANGLE) {
+			shape = RECT;
+		}
+		else {
+			shape = TRIANGLE;
+		}
+		break;
+	case '1':
+		xPos = cos(0);
+		yPos = sin(0);
+		break;
+	default:
+		break;
+	}
+}
+void TimerFunction(int value) {
+
+	glutPostRedisplay();
+	glutTimerFunc(100, TimerFunction, 1); // 타이머
+}

@@ -1,0 +1,205 @@
+#include<GL/glut.h>
+#include <math.h>
+#include <stdlib.h>
+
+#define LEFT -400
+#define RIGHT 400
+#define TOP 300
+#define BOTTOM -300
+
+#define NULL 0
+#define PIE	3.14
+
+#define TRIANGLE 456121
+#define RECT 456122
+
+///화면 컨트롤을 위한 기본 함수 선언
+GLvoid drawScene(GLvoid);
+GLvoid Reshape(int w, int h);
+void Keyboard(unsigned char key, int x, int y);
+void SetupRc();	// 필요한 변수 초기화
+
+float TransX = 0.0, TransY = 0.0, TransZ = 0.0;
+float LookX = 0.0, LookY = 0.0, LookZ = 0.0;
+float SphereX = 0.0, SphereY = 0.0, SphereZ = 0.0;
+float RotateX = 0.0, RotateY = 0.0, RotateZ = 0.0;
+
+void main(int argc, char *argv[])
+{
+	//초기화 함수들 
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 0); //    윈도우의 위치지정 
+	glutInitWindowSize(800, 600); // 윈도우의 크기 지정 
+	glutCreateWindow("실습18"); // 윈도우 생성 (윈도우 이름) 
+	SetupRc();	// 상태 변수 초기화
+	glutDisplayFunc(drawScene); // 출력 함수의 지정
+	glutKeyboardFunc(Keyboard);		// 키보드 입력
+	glutReshapeFunc(Reshape); // 다시 그리기 함수의 지정 
+	glutMainLoop();
+}
+// 윈도우 출력 함수
+GLvoid drawScene(GLvoid) {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);    // 바탕색을 'black' 로 지정
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 설정된 색으로 젂체를 칠하기
+
+	glMatrixMode(GL_MODELVIEW);
+
+	glPushMatrix();
+
+	glTranslatef(TransX, TransY, TransZ);
+	glRotatef(LookX, 1.0, 0.0, 0.0);
+	glRotatef(LookY, 0.0, 1.0, 0.0);
+	glRotatef(LookZ, 0.0, 0.0, 1.0);
+
+	glPushMatrix();
+
+	glColor3f(1.0, 0.5, 0.0);
+
+	glTranslatef(0.0, 0.0, 0.35);
+	glTranslatef(SphereX, SphereY, 0.0);
+	if (RotateY == 0 && RotateZ == 0){
+		glRotatef(90, 1.0, 0.0, 0.0);
+	}
+	else if (RotateX == 0 && RotateZ == 0){
+		glRotatef(180, 0.0, 0.0, 1.0);
+	}
+	glRotatef(RotateX * 1000, 0.0, 0.0, 1.0);
+	glRotatef(RotateY * 1000, 1.0, 0.0, 0.0);
+	glRotatef(RotateZ * 1000, 0.0, 1.0, 0.0);
+
+	glutWireSphere(0.1, 20, 20);
+
+	glPopMatrix();
+
+	glPushMatrix();
+
+	glColor3f(0.0, 0.5, 1.0);
+	glScalef(1.0, 1.0, 0.5);
+	glutWireCube(1.0);
+
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glutSwapBuffers();
+}
+void SetupRc() {
+	TransX = 0.0, TransY = 0.0, TransZ = 0.0;
+	LookX = 0.0, LookY = 0.0, LookZ = 0.0;
+	SphereX = 0.0, SphereY = 0.0, SphereZ = 0.0;
+	RotateX = 0.0, RotateY = 0.0, RotateZ = 0.0;
+}
+GLvoid Reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	// 모델링 변환 설정: 디스플레이 콜백 함수에서 모델 변환 적용하기 위하여 Matrix mode 저장
+	// 원근 투영을 사용하는 경우:
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	gluPerspective(60.0f, w / h, 1.0, 1000.0);
+
+	// 관측 변환: 카메라의 위치 설정 (필요한 경우, 다른 곳에 설정 가능)
+	gluLookAt(0.0, -0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, -3.0);
+
+}
+void Keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'w':
+	case 'W':
+		TransY += 0.5;
+		glutPostRedisplay();
+		break;
+	case 's':
+	case 'S':
+		TransY -= 0.5;
+		glutPostRedisplay();
+		break;
+	case 'a':
+	case 'A':
+		TransX -= 0.5;
+		glutPostRedisplay();
+		break;
+	case 'd':
+	case 'D':
+		TransX += 0.5;
+		glutPostRedisplay();
+		break;
+	case '+':
+		TransZ += 0.5;
+		glutPostRedisplay();
+		break;
+	case '-':
+		TransZ -= 0.5;
+		glutPostRedisplay();
+		break;
+	case 'x':
+	case 'X':
+		LookX++;
+		glutPostRedisplay();
+		break;
+	case 'y':
+	case 'Y':
+		LookY++;
+		glutPostRedisplay();
+		break;
+	case 'z':
+	case 'Z':
+		LookZ++;
+		glutPostRedisplay();
+		break;
+	case 'l':
+		if (SphereX > -0.5)
+			SphereX -= 0.01;
+		RotateX--;
+		RotateY = 0;
+		RotateZ = 0;
+		glutPostRedisplay();
+		break;
+	case 'L':
+		if (SphereX < 0.5)
+			SphereX += 0.01;
+		RotateX++;
+		RotateY = 0;
+		RotateZ = 0;
+		glutPostRedisplay();
+		break;
+	case 'm':
+		if (SphereY > -0.5)
+			SphereY -= 0.01;
+		RotateY--;
+		RotateX = 0;
+		RotateZ = 0;
+		glutPostRedisplay();
+		break;
+	case 'M':
+		if (SphereY < 0.5)
+			SphereY += 0.01;
+		RotateY++;
+		RotateX = 0;
+		RotateZ = 0;
+		glutPostRedisplay();
+		break;
+	case 'n':
+	case 'N':
+		SphereZ += 0.01;
+		RotateZ++;
+		RotateX = 0;
+		RotateY = 0;
+		glutPostRedisplay();
+		break;
+	case 'i':
+	case 'I':
+		SetupRc();
+		glutPostRedisplay();
+		break;
+	case 'q':
+	case 'Q':
+		exit(0);
+		break;
+	default:
+		break;
+	}
+}

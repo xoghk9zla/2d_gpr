@@ -1,0 +1,235 @@
+#include <GL/glut.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define PIE 3.14
+#define DEGREE 360			//각도
+#define MAGNIFICATION 0.2	//배율
+
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+void Keyboard(unsigned char key, int x, int y);
+void TimerFunction(int value);
+
+float sx = 1.0, sy = 1.0, sz = 1.0;	// 확대 축소
+float rx = 1.0, ry = 1.0, rz = 1.0;	// 회전
+float mx = 0.0, my = 0.0;	// 이동
+float Tx = cos((mx * PIE) / (DEGREE / 2)) * MAGNIFICATION, Ty = 0.0;
+bool px, py, pz;	//x, y, z가 눌렸는지
+bool scale = false;
+bool move = false;	// 회전 or 이동
+bool back = false;
+int shape = 0;	// 모양 변경
+int rotate = 0;	// 회전각도
+int op = 0;
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);// glut 초기화
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);// 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);// 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);// 윈도우의 크기 지정 
+	glutCreateWindow("실습12");// 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);// 출력 함수의 지정 
+	glutKeyboardFunc(Keyboard);		// 키보드 입력
+	glutReshapeFunc(reshape);	// 다시 그리기 함수 지정 
+	glutTimerFunc(0, TimerFunction, 1); // 타이머
+	glutMainLoop();	// 이벤트 처리 시작 
+}
+void drawScene() {
+	glClear(GL_COLOR_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glColor4f(0.25, 0.7, 0.3, 1.0);		// x,y 축
+	glBegin(GL_LINES);
+	glVertex3f(-1.0, 0.0, 0.0);
+	glVertex3f(1.0, 0.0, 0.0);
+	glVertex3f(0.0, -1.0, 0.0);
+	glVertex3f(0.0, 1.0, 0.0);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	if (op == 0){	// 원
+		for (float i = 0; i < DEGREE; ++i){
+			glVertex3f(cos((i * PIE) / (DEGREE / 2)) * MAGNIFICATION, sin((i * PIE) / (DEGREE / 2))* MAGNIFICATION, 0.0f);
+		}
+	}
+	else if (op == 1){
+		for (float i = 0; i < DEGREE; ++i){	// sin곡선
+			glVertex3f(i / 360, sin((i * PIE) / (DEGREE / 2))* MAGNIFICATION, 0.0f);
+		}
+	}
+	else if (op == 2){
+		for (float i = 0; i < DEGREE * 4; ++i){
+			glVertex3f((i / 360) * MAGNIFICATION + cos(i / DEGREE * 2 * PIE) * MAGNIFICATION, sin(i / DEGREE * 2 * PIE) * MAGNIFICATION, 0.0f);
+		}
+	}
+	glEnd();
+
+	glScalef(sx, sy, sz);
+	if (move == false){	// 회전
+		glRotatef(rotate, rx, ry, rz);
+	}
+	if (move == true){	// 이동
+		if (op == 0){	// 원
+			glTranslatef(cos((mx * PIE) / (DEGREE / 2)) * MAGNIFICATION, sin((my * PIE) / (DEGREE / 2)) * MAGNIFICATION, 0.0f);
+		}
+		else if (op == 1){	// sin곡선
+			glTranslatef(mx, sin((my * PIE) / (DEGREE / 2)) * MAGNIFICATION, 0.0f);
+		}
+		else if (op == 2){	// 회오리
+			glTranslatef(mx / 360 + cos((my * PIE) / (DEGREE / 2)) * MAGNIFICATION, sin((my * PIE) / (DEGREE / 2)) * MAGNIFICATION, 0.0f);
+		}
+	}
+	glColor4f(0.5, 0.2, 0.7, 1.0);
+
+	glBegin(GL_LINE_LOOP);	
+	if (shape == 0){	// 삼각형
+		glVertex3f(0.0 + Tx, +0.125, 0.0f);
+		glVertex3f(-0.125 + Tx, -0.125, 0.0f);
+		glVertex3f(0.125 + Tx, -0.125, 0.0f);
+	}
+	else{	// 사각형
+		glVertex3f(-0.125 + Tx, 0.125, 0.0f);
+		glVertex3f(-0.125 + Tx, -0.125, 0.0f);
+		glVertex3f(0.125 + Tx, -0.125, 0.0f);
+		glVertex3f(0.125 + Tx, 0.125, 0.0f);
+	}
+
+	glEnd();
+
+	glutSwapBuffers();
+}
+
+GLvoid reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	glLoadIdentity();
+}
+void Keyboard(unsigned char key, int x, int y){
+	switch (key)
+	{
+	case 's':	// 도형 모양
+	case 'S':
+		if (shape == 0){
+			shape = 1;
+		}
+		else{
+			shape = 0;
+		}
+		glutPostRedisplay();
+		break;
+	case 'm':	// 이동 회전
+	case 'M':
+		if (op == 0){
+			if (move == false){
+				move = true;
+				Tx = 0.0;
+				Ty = 0.0;
+			}
+			else if (move == true){
+				move = false;
+				Tx = cos((0 * PIE) / (DEGREE / 2)) * MAGNIFICATION;
+				Ty = sin((0 * PIE) / (DEGREE / 2)) * MAGNIFICATION;
+			}
+		}
+		glutPostRedisplay();
+		break;
+	case 't':	// 궤도 변경
+	case 'T':
+		if (op == 0){
+			op = 1;
+			move = true;
+			mx = 0;
+			my = 0;
+			Tx = 0.0;
+			Ty = 0.0;
+		}
+		else if(op == 1){
+			op = 2;
+			move = true;
+			mx = 0;
+			my = 0;
+			Tx = 0;
+			Ty = 0;
+		}
+		else if(op == 2){
+			op = 0;
+			move = true;
+			mx = 0;
+			my = 0;
+			Tx = 0;
+			Ty = 0;
+		}
+		glutPostRedisplay();
+		break;
+	case 'q':
+	case 'Q':
+		exit(0);
+		break;
+	default:
+		break;
+	}
+}
+void TimerFunction(int value) {
+	if (move == false){
+		rx = 0.0;	// 회전
+		ry = 0.0;
+		rz = 1.0;
+		rotate += 2;
+	}
+	else{
+		if (op == 0){	// 원
+			mx += 10;
+			my += 10;
+		}
+		else if(op == 1){
+			if (back == false){
+				mx += 0.03;	// sin곡선
+				my += 10;
+				if (mx > 1){
+					back = true;
+				}
+			}
+			else{
+				mx -= 0.03;
+				my -= 10;
+				if (mx < 0){
+					back = false;
+				}
+			}
+		}
+		else if (op == 2){	// 회오리
+			if (back == false){
+				mx += 2;
+				my += 10;
+				if (mx > 285){
+					back = true;
+				}
+			}
+			else{
+				mx -= 2;
+				my -= 10;
+				if (mx < 0){
+					back = false;
+				}
+			}
+		}
+	}
+	if (scale == false){	// 확장 축소
+		sx += 0.1;
+		sy += 0.1;
+		if (sx > 1.2){
+			scale = true;
+		}
+	}
+	else{
+		sx -= 0.1;
+		sy -= 0.1;
+		if (sx < 0.8){
+			scale = false;
+		}
+	}
+	glutPostRedisplay();
+	glutTimerFunc(100, TimerFunction, 1); // 타이머
+
+}

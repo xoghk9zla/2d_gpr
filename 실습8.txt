@@ -1,0 +1,105 @@
+#include <GL/glut.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define MAX 10
+
+struct Object{
+	int x, y;
+	bool move;
+};
+
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+void Mouse(int button, int state, int x, int y);
+void Motion(int x, int y);
+void TimerFunction(int value);
+
+Object object[10], goal;
+int cur = 0, end = 0;
+bool Right_button;
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);    // glut 초기화
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);  // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);   // 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);    // 윈도우의 크기 지정 
+	glutCreateWindow("실습8");   // 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);    // 출력 함수의 지정 
+	glutMouseFunc(Mouse);		//마우스 입력 함수
+	glutMotionFunc(Motion);
+	glutReshapeFunc(reshape);   // 다시 그리기 함수 지정 
+	glutMainLoop();    // 이벤트 처리 시작 
+}
+
+GLvoid drawScene() {     // 출력 함수 
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);   // 설정된 색으로 전체를 칠하기
+
+	glColor4f(0.75f, 0.4f, 0.29f, 1.0f);
+	
+	for (int k = 0; k < end; ++k){
+		glBegin(GL_LINE_LOOP);
+		glVertex2d(object[k].x, object[k].y);
+		glVertex2d(object[k].x, object[k].y + 40);
+		glVertex2d(object[k].x + 40, object[k].y + 40);
+		glVertex2d(object[k].x + 40, object[k].y);
+		glEnd();
+	}
+	glColor4f(0.75f, 0.4f, 0.29f, 1.0f);
+	if (goal.move == true){
+		glBegin(GL_LINE_LOOP);
+		glVertex2d(goal.x, goal.y);
+		glVertex2d(goal.x, goal.y + 20);
+		glVertex2d(goal.x + 20, goal.y + 20);
+		glVertex2d(goal.x + 20, goal.y);
+		glEnd();
+	}
+	glFlush();      // 화면에 출력하기 
+}
+GLvoid reshape(int w, int h) {    // 다시 그리기 함수
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, w, 0.0, h, -1.0, 1.0);
+}
+void Mouse(int button, int state, int x, int y){
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		object[cur%MAX].x = x;
+		object[cur%MAX].y = 600 - y;
+
+		++cur;
+		Right_button = false;
+		if (end < 10)
+			++end;		
+		glutPostRedisplay();
+	}
+	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN){
+		goal.x = x;
+		goal.y = 600 - y;
+		goal.move = true;
+		Right_button = true;
+		glutTimerFunc(0, TimerFunction, 1); // 타이머
+		glutPostRedisplay();
+	}
+	
+}
+void Motion(int x, int y){
+	if (Right_button == true){
+		goal.x = x;
+		goal.y = 600 - y;
+		goal.move = true;
+		glutTimerFunc(0, TimerFunction, 1); // 타이머
+		glutPostRedisplay();
+	}
+}
+void TimerFunction(int value){
+	if (goal.move == true){
+		for (int i = 0; i < end; ++i){
+			goal.x > object[i].x ? ++object[i].x : --object[i].x;
+			goal.y > object[i].y ? ++object[i].y : --object[i].y;
+		}
+	}
+	glutPostRedisplay();
+	glutTimerFunc(500, TimerFunction, 1); // 타이머
+}

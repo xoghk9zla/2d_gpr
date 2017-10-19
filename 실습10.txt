@@ -1,0 +1,161 @@
+#include <GL/glut.h>
+#include <stdlib.h>
+
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+
+void Mouse(int button, int state, int x, int y);
+void TimerFunction(int value);
+
+#define WIDTH 600
+#define HEIGHT 300
+#define AX 100
+#define AY 200
+
+struct Rect {
+	int x, y, vec;
+	float color[3];
+};
+
+Rect a[10];
+int cur = 0, end = 0;
+
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);    // glut 초기화
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);  // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);   // 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);    // 윈도우의 크기 지정 
+	glutCreateWindow("실습10");   // 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);    // 출력 함수의 지정 
+	glutMouseFunc(Mouse);			// 마우스 입력
+	glutReshapeFunc(reshape);   // 다시 그리기 함수 지정 
+	glutMainLoop();    // 이벤트 처리 시작 
+}
+
+GLvoid drawScene() {     // 출력 함수 
+
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);   // 설정된 색으로 젂체를 칠하기
+
+	glColor4f(0.0, 0.0, 0.0, 1.0f);
+	glBegin(GL_LINE_LOOP);
+	glVertex2d(AX, AY);
+	glVertex2d(AX, AY + HEIGHT);
+	glVertex2d(AX + WIDTH, AY + HEIGHT);
+	glVertex2d(AX + WIDTH, AY);
+	glEnd();
+
+	for (int i = 0; i < end; ++i) {
+		glColor4f(a[i].color[0], a[i].color[1], a[i].color[2], 1.0f);
+		glBegin(GL_LINE_LOOP);
+		glVertex2d(a[i].x, 600 - a[i].y);
+		glVertex2d(a[i].x, 600 - (a[i].y + 30));
+		glVertex2d(a[i].x + 30, 600 - (a[i].y + 30));
+		glVertex2d(a[i].x + 30, 600 - a[i].y);
+		glEnd();
+	}
+
+	glFlush();      // 화면에 출력하기 
+}
+GLvoid reshape(int w, int h) {    // 다시 그리기 함수
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, w, 0.0, h, -1.0, 1.0);
+}
+
+void Mouse(int button, int state, int x, int y) {
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		if (AX < x && x < AX + WIDTH && 600 - (AY + HEIGHT) < y && y < 600 - AY) {
+			a[cur % 10].x = x;
+			a[cur % 10].y = y;
+
+			a[cur % 10].color[0] = 0.2f;
+			a[cur % 10].color[1] = 0.4f;
+			a[cur % 10].color[2] = 0.5f;
+
+			++cur;
+			if (end < 10)
+				++end;
+		}
+	}
+	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+		for (int i = 0; i < 10; ++i) {
+			a[i].vec = rand() % 4;
+		}
+		glutTimerFunc(10, TimerFunction, 1); // 타이머
+	}
+	glutPostRedisplay();
+}
+
+void TimerFunction(int value) {
+
+	for (int i = 0; i < end; ++i) {
+		if (a[i].vec == 0) {// 오른위
+			++a[i].x;
+			--a[i].y;
+			if (a[i].x >= AX + WIDTH) {
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+			else if (a[i].y + 30 <= 600 - (AY + HEIGHT)){
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+		}
+		else if (a[i].vec == 1) {//왼위
+			--a[i].x;
+			--a[i].y;
+			if (a[i].y + 30 <= 600 - (AY + HEIGHT)){
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+			else if (a[i].x + 30 <= AX) {
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+		}
+		else if (a[i].vec == 2) {//왼아래
+			--a[i].x;
+			++a[i].y;
+			if (a[i].x + 30 < AX) {
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+			else if (a[i].y >= 600 - AY) {
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+		}
+		else if (a[i].vec == 3) {//오른아래
+			++a[i].x;
+			++a[i].y;
+			if (a[i].y >= 600 - AY) {
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+			else if (a[i].x >= AX + WIDTH) {
+				a[i].color[0] += 0.03f;
+				a[i].color[1] += 0.03f;
+				a[i].color[2] += 0.03f;
+				glutPostRedisplay();   // 화면 재 출력
+			}
+		}
+	}
+	glutPostRedisplay();   // 화면 재 출력
+	glutTimerFunc(10, TimerFunction, 1); // 타이머함수 재 설정  	
+}
