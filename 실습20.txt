@@ -177,7 +177,7 @@ GLvoid drawScene(GLvoid) {
 	glPushMatrix();
 
 	glTranslated(0.0, 20.0, 0.0);
-	glScalef(2.0, 1.0, 1.0);
+	glScalef(2.0, 1.0, 0.25);
 
 	glutWireCube(20.0);
 	// 왼쪽--------------------------------------------
@@ -198,7 +198,7 @@ GLvoid drawScene(GLvoid) {
 
 	glPopMatrix();
 	// ------------------------------------------------
-	// 오른쪽--------------------------------------------
+	// 오른쪽------------------------------------------
 	glPushMatrix();
 
 	glTranslated(10.0, 0.0, 0.0);
@@ -230,8 +230,10 @@ void SetupRc() {
 	Leap_SX = 1.0, Leap_SY = 1.0, Leap_SZ = 1.0;
 	Leap_A = 0.0;
 	Torus_TY = 0.0;
+	Door_A = 0.0;
 	Cone_SX = 1.0, Cone_SY = 1.0, Cone_SZ = 1.0;
 	Leap_S = false, UP_T = false, Cone_S = false;
+	Open_D = false;
 }
 GLvoid Reshape(int w, int h) {
 	glViewport(0, 0, w, h);
