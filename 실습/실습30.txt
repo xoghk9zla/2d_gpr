@@ -1,0 +1,460 @@
+#include<GL/glut.h>
+#include <math.h>
+#include <stdlib.h>
+#include <iostream>
+
+using namespace std;
+
+#define PIE 3.14
+
+struct Object {
+	float x, y, z;
+	float speed;
+};
+
+struct Vector {
+	GLfloat x, y, z;
+};
+
+///화면 컨트롤을 위한 기본 함수 선언
+GLvoid drawScene(GLvoid);
+GLvoid Reshape(int w, int h);
+void Keyboard(unsigned char key, int x, int y);
+void SetupRc(); // 필요한 변수 초기화
+void TimerFunction(int value);
+Vector Cross_vecter(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
+Object Snow[100];
+
+float TransX = 0.0, TransY = 0.0, TransZ = 0.0;
+float LookX = 0.0, LookY = 0.0, LookZ = 0.0;
+float Earth_AX = 0.0, Earth_AY = 0.0;
+float Light_Angle = 0.0;
+
+bool Leap_S = false, UP_T = false, Cone_S = false;
+bool Zoom_in = false, Rotate_camera = false, Zoom_out = false, Rotate_Light = false;
+
+GLfloat AmbientLight[] = { 1.0f, 1.0f, 0.0f, 0.0f };
+GLfloat DiffuseLight[] = { 0.0f, 1.0f, 1.0f, 0.0f };
+GLfloat SpecularLight[] = { 1.0, 1.0, 1.0, 0.0f };
+GLfloat gray[] = { 0.75f, 0.75f, 0.75f, 1.0f };
+GLfloat lightPos_Left_Top[] = { -100.0, 0.0, 100.0, 0.0 };
+GLfloat lightPos_Right_Top[] = { 100.0, 0.0, 100.0, 0.0 };
+GLfloat lightPos_Left_Bottom[] = { -100.0, 0.0, -100.0, 0.0 };
+GLfloat lightPos_Right_Bottom[] = { 100.0, 0.0, -100.0, 0.0 };
+
+void main(int argc, char *argv[]) {
+	//초기화 함수들 
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 0); //??? 윈도우의 위치지정 
+	glutInitWindowSize(800, 600); // 윈도우의 크기 지정 
+	glutCreateWindow("실습30"); // 윈도우 생성 (윈도우 이름) 
+	SetupRc(); // 상태 변수 초기화
+	glutDisplayFunc(drawScene); // 출력 함수의 지정
+	glutKeyboardFunc(Keyboard); // 키보드 입력
+	glutReshapeFunc(Reshape); // 다시 그리기 함수의 지정 
+	glutTimerFunc(0, TimerFunction, 0);
+	glutMainLoop();
+}
+// 윈도우 출력 함수
+GLvoid drawScene(GLvoid) {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // 바탕색을 'black' 로 지정
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glPushMatrix();
+	glTranslatef(TransX, TransY, TransZ);
+
+	glRotatef(LookX, 1.0, 0.0, 0.0);
+	glRotatef(LookY, 0.0, 1.0, 0.0);
+	glRotatef(LookZ, 0.0, 0.0, 1.0);
+
+	glPushMatrix();
+
+	glRotatef(Light_Angle, 0.0, 1.0, 0.0);
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, AmbientLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, DiffuseLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, SpecularLight);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos_Left_Top);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, AmbientLight);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, DiffuseLight);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, SpecularLight);
+	glLightfv(GL_LIGHT1, GL_POSITION, lightPos_Right_Top);
+	glLightfv(GL_LIGHT2, GL_AMBIENT, AmbientLight);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, DiffuseLight);
+	glLightfv(GL_LIGHT2, GL_SPECULAR, SpecularLight);
+	glLightfv(GL_LIGHT2, GL_POSITION, lightPos_Left_Bottom);
+	glLightfv(GL_LIGHT3, GL_AMBIENT, AmbientLight);
+	glLightfv(GL_LIGHT3, GL_DIFFUSE, DiffuseLight);
+	glLightfv(GL_LIGHT3, GL_SPECULAR, SpecularLight);
+	glLightfv(GL_LIGHT3, GL_POSITION, lightPos_Right_Bottom);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, SpecularLight);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, gray);
+	glMateriali(GL_FRONT, GL_SHININESS, 64);
+
+	glPopMatrix();
+
+	glTranslated(0.0, -30.0, 0.0);
+	// 바닥------------------------------------------
+	glPushMatrix();
+	for (int i = 0; i < 100; ++i) {
+		glPushMatrix();
+		glColor3f(1.0, 1.0, 1.0);
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glTranslatef(Snow[i].x, Snow[i].y, Snow[i].z);
+		glutSolidSphere(2.5, 20, 20);
+		glPopMatrix();
+	}
+	glColor3f(1.0, 1.0, 1.0);
+	glTranslated(0.0, -45.0, 0.0);
+	glScalef(1.0, 0.2, 1.0);
+	glutSolidCube(200);
+	glPopMatrix();
+	// -----------------------------------------------
+	// 중앙피라미드------------------------------------------
+	glPushMatrix();
+	glColor3f(0.85, 0.85, 0.0);
+	glBegin(GL_QUADS);
+	glVertex3f(-70.0, -20.0, 20.0);
+	glVertex3f(-70.0, -20.0, -20.0);
+	glVertex3f(-30.0, -20.0, -20.0);
+	glVertex3f(-30.0, -20.0, 20.0);
+	glEnd();
+	glBegin(GL_TRIANGLES);
+	glNormal3f(Cross_vecter(-70.0, -20.0, 20.0, -70.0, -20.0, -20.0, -50.0, 20.0, 0.0).x, Cross_vecter(-70.0, -20.0, 20.0, -70.0, -20.0, -20.0, -50.0, 20.0, 0.0).y, Cross_vecter(-70.0, -20.0, 20.0, -70.0, -20.0, -20.0, -50.0, 20.0, 0.0).z);
+	glVertex3f(-70.0, -20.0, 20.0);
+	glVertex3f(-70.0, -20.0, -20.0);
+	glVertex3f(-50.0, 20.0, 0.0);
+	glNormal3f(Cross_vecter(-70.0, -20.0, -20.0, -30.0, -20.0, -20.0, -50.0, 20.0, 0.0).x, Cross_vecter(-70.0, -20.0, -20.0, -30.0, -20.0, -20.0, -50.0, 20.0, 0.0).y, Cross_vecter(-70.0, -20.0, -20.0, -30.0, -20.0, -20.0, -50.0, 20.0, 0.0).z);
+	glVertex3f(-70.0, -20.0, -20.0);
+	glVertex3f(-30.0, -20.0, -20.0);
+	glVertex3f(-50.0, 20.0, 0.0);
+	glNormal3f(Cross_vecter(-30.0, -20.0, 20.0, -70.0, -20.0, -20.0, -50.0, 20.0, 0.0).x, Cross_vecter(-30.0, -20.0, 20.0, -70.0, -20.0, -20.0, -50.0, 20.0, 0.0).y, Cross_vecter(-30.0, -20.0, 20.0, -70.0, -20.0, -20.0, -50.0, 20.0, 0.0).z);
+	glVertex3f(-30.0, -20.0, 20.0);
+	glVertex3f(-70.0, -20.0, -20.0);
+	glVertex3f(-50.0, 20.0, 0.0);
+	glNormal3f(Cross_vecter(-70.0, -20.0, -20.0, -30.0, -20.0, 20.0, -50.0, 20.0, 0.0).x, Cross_vecter(-70.0, -20.0, -20.0, -30.0, -20.0, 20.0, -50.0, 20.0, 0.0).y, Cross_vecter(-70.0, -20.0, -20.0, -30.0, -20.0, 20.0, -50.0, 20.0, 0.0).z);
+	glVertex3f(-70.0, -20.0, -20.0);
+	glVertex3f(-30.0, -20.0, 20.0);
+	glVertex3f(-50.0, 20.0, 0.0);
+	glEnd();
+	glPushMatrix();
+	glColor3f(0.0, 0.0, 1.0);
+	glTranslatef(0.0, 40.0, 0.0);
+	glTranslatef(10 * cos(Earth_AX*(PIE / 180)) - 50, 10 * sin(Earth_AY*(PIE / 180)), 0.0);
+	glutSolidSphere(5.0, 20, 20);
+	glPushMatrix();
+	glColor3f(0.75, 0.75, 0.75);
+	glTranslatef(10 * cos(Earth_AX*(PIE / 180)), 10 * sin(Earth_AY*(PIE / 180)), 0.0);
+	glutSolidSphere(2.5, 20, 20);
+	glPopMatrix();
+	glPopMatrix();
+	glPopMatrix();
+	glPushMatrix();
+	glColor3f(0.85, 0.85, 0.0);
+	glBegin(GL_QUADS);
+	glVertex3f(30.0, -20.0, 20.0);
+	glVertex3f(30.0, -20.0, -20.0);
+	glVertex3f(70.0, -20.0, -20.0);
+	glVertex3f(70.0, -20.0, 20.0);
+	glEnd();
+	glBegin(GL_TRIANGLES);
+	glNormal3f(Cross_vecter(30.0, -20.0, 20.0, 30.0, -20.0, -20.0, 50.0, 20.0, 0.0).x, Cross_vecter(30.0, -20.0, 20.0, 30.0, -20.0, -20.0, 50.0, 20.0, 0.0).y, Cross_vecter(30.0, -20.0, 20.0, 30.0, -20.0, -20.0, 50.0, 20.0, 0.0).z);
+	glVertex3f(30.0, -20.0, 20.0);
+	glVertex3f(30.0, -20.0, -20.0);
+	glVertex3f(50.0, 20.0, 0.0);
+	glNormal3f(Cross_vecter(30.0, -20.0, -20.0, 70.0, -20.0, -20.0, 50.0, 20.0, 0.0).x, Cross_vecter(30.0, -20.0, -20.0, 70.0, -20.0, -20.0, 50.0, 20.0, 0.0).y, Cross_vecter(30.0, -20.0, -20.0, 70.0, -20.0, -20.0, 50.0, 20.0, 0.0).z);
+	glVertex3f(30.0, -20.0, -20.0);
+	glVertex3f(70.0, -20.0, -20.0);
+	glVertex3f(50.0, 20.0, 0.0);
+	glNormal3f(Cross_vecter(70.0, -20.0, 20.0, 30.0, -20.0, -20.0, 50.0, 20.0, 0.0).x, Cross_vecter(70.0, -20.0, 20.0, 30.0, -20.0, -20.0, 50.0, 20.0, 0.0).y, Cross_vecter(70.0, -20.0, 20.0, 30.0, -20.0, -20.0, 50.0, 20.0, 0.0).z);
+	glVertex3f(70.0, -20.0, 20.0);
+	glVertex3f(30.0, -20.0, -20.0);
+	glVertex3f(50.0, 20.0, 0.0);
+	glNormal3f(Cross_vecter(30.0, -20.0, -20.0, 70.0, -20.0, 20.0, 50.0, 20.0, 0.0).x, Cross_vecter(30.0, -20.0, -20.0, 70.0, -20.0, 20.0, 50.0, 20.0, 0.0).y, Cross_vecter(30.0, -20.0, -20.0, 70.0, -20.0, 20.0, 50.0, 20.0, 0.0).z);
+	glVertex3f(30.0, -20.0, -20.0);
+	glVertex3f(70.0, -20.0, 20.0);
+	glVertex3f(50.0, 20.0, 0.0);
+	glEnd();
+	glPushMatrix();
+	glColor3f(0.0, 0.0, 1.0);
+	glTranslatef(0.0, 40.0, 0.0);
+	glTranslatef(10 * cos(Earth_AX*(PIE / 180)) + 50, 10 * sin(Earth_AY*(PIE / 180)), 0.0);
+	glutSolidSphere(5.0, 20, 20);
+	glPushMatrix();
+	glColor3f(0.75, 0.75, 0.75);
+	glTranslatef(10 * cos(Earth_AX*(PIE / 180)), 10 * sin(Earth_AY*(PIE / 180)), 0.0);
+	glutSolidSphere(2.5, 20, 20);
+	glPopMatrix();
+	glPopMatrix();
+	glPopMatrix();
+	// ------------------------------------------------
+	glPushMatrix();
+
+	glTranslatef(lightPos_Left_Top[0], lightPos_Left_Top[1], lightPos_Left_Top[2]);
+	glRotated(-90, 0, 1, 0);
+	glutSolidSphere(20, 20, 20);
+
+	glPopMatrix();
+
+	glPushMatrix();
+
+	glTranslatef(lightPos_Right_Top[0], lightPos_Right_Top[1], lightPos_Right_Top[2]);
+	glRotated(90, 0, 1, 0);
+	glutSolidSphere(20, 20, 20);
+
+	glPopMatrix();
+
+	glPushMatrix();
+
+	glTranslatef(lightPos_Left_Bottom[0], lightPos_Left_Bottom[1], lightPos_Left_Bottom[2]);
+	glRotated(90, 0, 1, 0);
+	glutSolidSphere(20, 20, 20);
+
+	glPopMatrix();
+
+	glPushMatrix();
+
+	glTranslatef(lightPos_Right_Bottom[0], lightPos_Right_Bottom[1], lightPos_Right_Bottom[2]);
+	glRotated(90, 0, 1, 0);
+	glutSolidSphere(20, 20, 20);
+
+	glPopMatrix();
+
+	glPopMatrix();
+	glutSwapBuffers();
+}
+void SetupRc() {
+	TransX = 0.0, TransY = 0.0, TransZ = 0.0;
+	LookX = 0.0, LookY = 0.0, LookZ = 0.0;
+	Leap_S = false, UP_T = false, Cone_S = false;
+	for (int i = 0; i < 100; ++i) {
+		Snow[i].x = rand() % 200 - 100;
+		Snow[i].y = 100;
+		Snow[i].z = rand() % 200 - 100;
+		Snow[i].speed = rand() % 10 + 1;
+	}
+	AmbientLight[0] = 1.0f;
+	AmbientLight[1] = 1.0f;
+	AmbientLight[2] = 0.0f;
+	AmbientLight[3] = 0.0f;
+	DiffuseLight[0] = 0.0f;
+	DiffuseLight[1] = 1.0f;
+	DiffuseLight[2] = 1.0f;
+	DiffuseLight[3] = 0.0f;
+	SpecularLight[0] = 1.0f;
+	SpecularLight[1] = 1.0f;
+	SpecularLight[2] = 1.0f;
+	SpecularLight[3] = 0.0f;
+	lightPos_Left_Top[0] = -100.0;
+	lightPos_Left_Top[1] = -40.0;
+	lightPos_Left_Top[2] = 100.;
+	lightPos_Right_Top[0] = 100.0;
+	lightPos_Right_Top[1] = -40.0;
+	lightPos_Right_Top[2] = 100.;
+	lightPos_Left_Bottom[0] = -100.0;
+	lightPos_Left_Bottom[1] = -40.0;
+	lightPos_Left_Bottom[2] = -100.;
+	lightPos_Right_Bottom[0] = 100.0;
+	lightPos_Right_Bottom[1] = -40.0;
+	lightPos_Right_Bottom[2] = -100.;
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT2);
+	glEnable(GL_LIGHT3);
+};
+Vector Cross_vecter(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3){
+	Vector normal1, normal2, result;
+	normal1.x = x2 - x1;
+	normal1.y = y2 - y1;
+	normal1.z = z2 - z1;
+	normal2.x = x3 - x1;
+	normal2.y = y3 - y1;
+	normal2.z = z3 - z1;
+	result.x = normal1.y * normal2.z - normal1.z * normal2.y;
+	result.y = normal1.z * normal2.x - normal1.x * normal2.z;
+	result.z = normal1.z * normal2.y - normal1.y * normal2.x;
+	return result;
+}
+GLvoid Reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	// 모델링 변환 설정: 디스플레이 콜백 함수에서 모델 변환 적용하기 위하여 Matrix mode 저장
+	// 원근 투영을 사용하는 경우:
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60.0f, w / h, 1.0, 3000.0);
+	// 관측 변환: 카메라의 위치 설정 (필요한 경우, 다른 곳에 설정 가능)
+	gluLookAt(0.0, 0.0, 1000.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+}
+void Keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'w':
+	case 'W':
+		TransY += 5;
+		glutPostRedisplay();
+		break;
+	case 's':
+	case 'S':
+		TransY -= 5;
+		glutPostRedisplay();
+		break;
+	case 'a':
+	case 'A':
+		TransX -= 5;
+		glutPostRedisplay();
+		break;
+	case 'd':
+	case 'D':
+		TransX += 5;
+		glutPostRedisplay();
+		break;
+	case '+':
+		TransZ += 5;
+		glutPostRedisplay();
+		break;
+	case '-':
+		TransZ -= 5;
+		glutPostRedisplay();
+		break;
+	case 'x':
+		LookX += 5;
+		glutPostRedisplay();
+		break;
+	case 'X':
+		LookX -= 5;
+		glutPostRedisplay();
+		break;
+	case 'y':
+		LookY += 5;
+		glutPostRedisplay();
+		break;
+	case 'Y':
+		LookY -= 5;
+		glutPostRedisplay();
+		break;
+	case 'z':
+		LookZ += 5;
+		glutPostRedisplay();
+		break;
+	case 'Z':
+		LookZ -= 5;
+		glutPostRedisplay();
+		break;
+	case '1':
+		if (glIsEnabled(GL_LIGHT0))
+			glDisable(GL_LIGHT0);
+		else
+			glEnable(GL_LIGHT0);
+		break;
+	case '2':
+		if (glIsEnabled(GL_LIGHT1))
+			glDisable(GL_LIGHT1);
+		else
+			glEnable(GL_LIGHT1);
+		break;
+	case '3':
+		if (glIsEnabled(GL_LIGHT2))
+			glDisable(GL_LIGHT2);
+		else
+			glEnable(GL_LIGHT2);
+		glutPostRedisplay();
+		break;
+	case '4':
+		if (glIsEnabled(GL_LIGHT3))
+			glDisable(GL_LIGHT3);
+		else
+			glEnable(GL_LIGHT3);
+		glutPostRedisplay();
+		break;
+	case '5':
+		if (glIsEnabled(GL_LIGHT0))
+			glDisable(GL_LIGHT0);
+		else
+			glEnable(GL_LIGHT0);
+		if (glIsEnabled(GL_LIGHT1))
+			glDisable(GL_LIGHT1);
+		else
+			glEnable(GL_LIGHT1);
+		if (glIsEnabled(GL_LIGHT2))
+			glDisable(GL_LIGHT2);
+		else
+			glEnable(GL_LIGHT2);
+		if (glIsEnabled(GL_LIGHT3))
+			glDisable(GL_LIGHT3);
+		else
+			glEnable(GL_LIGHT3);
+		glutPostRedisplay();
+		break;
+	case '6':
+		Zoom_in = true;
+		break;
+	case '7':
+		if (glIsEnabled(GL_NORMALIZE))
+			glDisable(GL_NORMALIZE);
+		else
+			glEnable(GL_NORMALIZE);
+		break;
+	case 'i':
+	case 'I':
+		SetupRc();
+		glutPostRedisplay();
+		break;
+	case 'q':
+	case 'Q':
+		exit(0);
+		break;
+	default:
+		break;
+	}
+}
+void TimerFunction(int value) {
+	Earth_AX += 5;
+	Earth_AY += 5;
+	for (int i = 0; i < 100; ++i) {
+		Snow[i].y -= Snow[i].speed;
+		if (Snow[i].y < 0) {
+			Snow[i].y = 100;
+			Snow[i].speed = rand() % 10 + 1;
+		}
+	}
+	if (Zoom_in) {
+		TransZ += 30;
+		if (TransZ > 500) {
+			Zoom_in = false;
+			Rotate_camera = true;
+		}
+	}
+	else if (Rotate_camera) {
+		LookY += 10;
+		if (LookY > 710) {
+			Rotate_camera = false;
+			Zoom_out = true;
+			LookY = 0;
+		}
+	}
+	else if (Zoom_out) {
+		TransZ -= 30;
+		if (TransZ < 0) {
+			Zoom_out = false;
+			Rotate_Light = true;
+		}
+	}
+	else if (Rotate_Light){
+		Light_Angle += 5;
+		if (Light_Angle > 720){
+			Rotate_Light = false;
+			Light_Angle = 0;
+		}
+	}
+	glutPostRedisplay();
+	glutTimerFunc(100, TimerFunction, value); // 타이머
+}

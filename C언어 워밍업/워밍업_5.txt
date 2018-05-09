@@ -1,0 +1,144 @@
+#include<iostream>
+#include<time.h>
+#include <conio.h>
+#include <stdlib.h>
+using namespace std;
+
+#define LEFT   75      // 좌측방향키
+#define RIGHT  77      // 우측방향키
+#define UP     72      // 위쪽방향키
+#define DOWN   80      // 아래방향키
+
+void main(){
+	int map[50][50];
+	int a = 0, b = 0, k = 0;
+	char op;
+	srand((unsigned)time(NULL));
+
+	for (int i = 0; i < 50; ++i){//배열 초기화
+		for (int j = 0; j < 50; ++j){
+			map[i][j] = 1;
+		}
+	}
+	map[0][0] = 0;
+
+	while (a + 1 < 50 && b + 1 < 50){//미로생성
+
+		k = rand() % 2;
+		if (k == 0 && map[a][b + 1] == 1){
+			map[a][b + 1] = 0;
+			++b;
+		}
+		else if (k == 1 && map[a + 1][b] == 1){
+			map[a + 1][b] = 0;
+			++a;
+		}
+	}
+	if (a == 49){
+		for (; b < 49; ++b)
+			map[49][b + 1] = 0;
+	}
+	else if (b == 49){
+		for (; a < 49; ++a)
+			map[a + 1][49] = 0;
+
+	}
+	a = 0, b = 0;
+	map[0][0] = 8;
+	for (int i = 0; i < 50; ++i){//미로 출력
+		for (int j = 0; j < 50; ++j){
+			if (map[i][j] == 0)
+				cout << "□";
+			else if (map[i][j] == 1)
+				cout << "■";
+			else
+				cout << "☆";
+		}
+		cout << "\n";
+	}
+
+	while (map[49][49] != 8){
+		op = _getch();
+		switch (op){
+		case UP:
+			if (map[a - 1][b] == 0){
+				map[a - 1][b] = map[a][b];
+				map[a][b] = 0;
+				--a;
+			}
+			system("cls");
+			for (int i = 0; i < 50; ++i){//미로 출력
+				for (int j = 0; j < 50; ++j){
+					if (map[i][j] == 0)
+						cout << "□";
+					else if (map[i][j] == 1)
+						cout << "■";
+					else
+						cout << "☆";
+				}
+				cout << "\n";
+			}
+			break;
+		case DOWN:
+			if (map[a + 1][b] == 0){
+				map[a + 1][b] = map[a][b];
+				map[a][b] = 0;
+				++a;
+			}
+			system("cls");
+			for (int i = 0; i < 50; ++i){//미로 출력
+				for (int j = 0; j < 50; ++j){
+					if (map[i][j] == 0)
+						cout << "□";
+					else if (map[i][j] == 1)
+						cout << "■";
+					else
+						cout << "☆";
+				}
+				cout << "\n";
+			}
+			break;
+		case LEFT:
+			if (map[a][b - 1] == 0){
+				map[a][b - 1] = map[a][b];
+				map[a][b] = 0;
+				--b;
+			}
+			system("cls");
+			for (int i = 0; i < 50; ++i){//미로 출력
+				for (int j = 0; j < 50; ++j){
+					if (map[i][j] == 0)
+						cout << "□";
+					else if (map[i][j] == 1)
+						cout << "■";
+					else
+						cout << "☆";
+				}
+				cout << "\n";
+			}
+			break;
+		case RIGHT:
+			if (map[a][b + 1] == 0){
+				map[a][b + 1] = map[a][b];
+				map[a][b] = 0;
+				++b;
+			}
+			system("cls");
+			for (int i = 0; i < 50; ++i){//미로 출력
+				for (int j = 0; j < 50; ++j){
+					if (map[i][j] == 0)
+						cout << "□";
+					else if (map[i][j] == 1)
+						cout << "■";
+					else
+						cout << "☆";
+				}
+				cout << "\n";
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	cout << "도착~!\n";
+}

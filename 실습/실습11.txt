@@ -1,0 +1,212 @@
+#include <GL/glut.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define PIE 3.14
+#define RADIAN (PIE*2)
+#define DEGREE 360			//각도
+#define MAGNIFICATION 0.2	//배율
+
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+void Keyboard(unsigned char key, int x, int y);
+void SpecialKeyboard(int key, int x, int y);
+void TimerFunction(int value);
+
+float sx = 1.0, sy = 1.0, sz = 1.0;	// 확대 축소
+float rx = 1.0, ry = 1.0, rz = 1.0;	// 회전
+float mx = 0.0, my = 0.0;	// 이동
+float tx = 0.0;
+bool px, py, pz;	//x, y, z가 눌렸는지
+bool timer;
+int rotate = 0;
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);// glut 초기화
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);// 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);// 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);// 윈도우의 크기 지정 
+	glutCreateWindow("실습11");// 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);// 출력 함수의 지정 
+	glutKeyboardFunc(Keyboard);		// 키보드 입력
+	glutSpecialFunc(SpecialKeyboard);	// 특수키 입력
+	glutReshapeFunc(reshape);	// 다시 그리기 함수 지정 
+	glutMainLoop();	// 이벤트 처리 시작 
+}
+void drawScene() {
+	glClear(GL_COLOR_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glColor4f(0.25, 0.7, 0.3, 1.0);
+	glBegin(GL_LINES);
+	glVertex3f(-1.0, 0.0, 0.0);
+	glVertex3f(1.0, 0.0, 0.0);
+	glVertex3f(0.0, -1.0, 0.0);
+	glVertex3f(0.0, 1.0, 0.0);
+	glEnd();
+
+	glScalef(sx, sy, sz);
+	glRotatef(rotate, rx, ry, rz);
+	glTranslatef(mx, my, 0.0);
+
+	glBegin(GL_LINE_STRIP);
+	for (float i = -DEGREE * 2; i < DEGREE * 2; ++i){
+		glVertex3f((i / DEGREE) * MAGNIFICATION, 0.75 + sin(i / DEGREE * RADIAN + tx)*MAGNIFICATION, 0.0f);
+	}
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	for (float i = -DEGREE * 2; i < DEGREE * 2; ++i){
+		glVertex3f((i / DEGREE) * MAGNIFICATION, 0.25 + cos(i / DEGREE * RADIAN + tx)*MAGNIFICATION, 0.0f);
+	}
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	for (float i = -DEGREE * 2; i < DEGREE * 2; ++i){
+		glVertex3f((i / 360) * MAGNIFICATION + cos(i / DEGREE * RADIAN + tx) * MAGNIFICATION, -0.25 + sin(i / DEGREE * RADIAN + tx) * MAGNIFICATION, 0.0f);
+	}
+	glEnd();
+
+	for (int i = -1; i < 2; ++i){
+		glLoadIdentity();
+		glScalef(sx, sy, sz);
+		glRotatef(rotate, rx, ry, rz);
+		glTranslatef(mx, my, 0.0);
+		glTranslatef(0.5 * i, -0.75, 0);
+		glutWireCube(0.3);
+	}
+	glutSwapBuffers();
+}
+
+GLvoid reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	glLoadIdentity();
+}
+void Keyboard(unsigned char key, int x, int y){
+	switch (key)
+	{
+	case 's':
+	case 'S':
+		if (sx == 1.0 && sy == 1.0 && sz == 1.0){
+			sx = 2.0;
+			sy = 2.0;
+		}
+		else{
+			sx = 1.0;
+			sy = 1.0;
+		}
+		glutPostRedisplay();
+		break;
+	case 'x':
+	case 'X':
+		if (px == true){
+			rx = 1.0;
+			ry = 0.0;
+			rz = 0.0;
+			++rotate;
+		}
+		else if (px == false){
+			rotate = 0;
+			px = true;
+			py = false;
+			pz = false;
+		}
+		glutPostRedisplay();
+		break;
+	case 'y':
+	case 'Y':
+		if (py == true){
+			rx = 0.0;
+			ry = 1.0;
+			rz = 0.0;
+			++rotate;
+		}
+		else if (py == false){
+			rotate = 0;
+			px = false;
+			py = true;
+			pz = false;
+		}
+		glutPostRedisplay();
+		break;
+	case 'z':
+	case 'Z':
+		if (pz == true){
+			rx = 0.0;
+			ry = 0.0;
+			rz = 1.0;
+			++rotate;
+		}
+		else if (pz == false){
+			rotate = 0;
+			px = false;
+			py = false;
+			pz = true;
+		}
+		glutPostRedisplay();
+		break;
+	case 'a':
+	case 'A':
+		if (timer == true){
+			timer = false;
+		}
+		else{
+			timer = true;
+		}
+		glutTimerFunc(0, TimerFunction, 1); // 타이머
+		break;
+	case 'i':
+	case 'I':
+		sx = 1.0;
+		sy = 1.0;
+		rx = 0.0;
+		ry = 0.0;
+		rz = 0.0;
+		mx = 0.0;
+		my = 0.0;
+		tx = 0.0;
+		px = false;
+		py = false;
+		pz = false;
+		timer = false;
+		rotate = 0;
+		glutPostRedisplay();
+		break;
+	case 'q':
+	case 'Q':
+		exit(0);
+		break;
+	default:
+		break;
+	}
+}
+void SpecialKeyboard(int key, int x, int y){
+	switch (key)
+	{
+	case GLUT_KEY_LEFT:
+		mx -= 0.1;
+		glutPostRedisplay();
+		break;
+	case GLUT_KEY_RIGHT:
+		mx += 0.1;
+		glutPostRedisplay();
+		break;
+	case GLUT_KEY_UP:
+		my += 0.1;
+		glutPostRedisplay();
+		break;
+	case GLUT_KEY_DOWN:
+		my -= 0.1;
+		glutPostRedisplay();
+		break;
+	default:
+		break;
+	}
+}
+void TimerFunction(int value) {
+	if (timer == true){
+		tx += 0.1;
+		glutPostRedisplay();
+		glutTimerFunc(100, TimerFunction, 1); // 타이머
+	}
+}

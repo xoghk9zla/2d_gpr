@@ -1,0 +1,51 @@
+#include<iostream>
+
+using namespace std;
+
+struct Vector{
+	int x, y, z;
+};
+void Det(Vector a, Vector b);
+void main(){
+	Vector a, b;
+	int op, d;
+	cout << "첫번째 (x, y, z) 좌표를 입력해주세요.\n";
+	cin >> a.x >> a.y >> a.z;
+	cout << "두번째 (x, y, z) 좌표를 입력해주세요.\n";
+	cin >> b.x >> b.y >> b.z;
+	while (1){
+		cout << "1. 합 2. 차 3. 내적 4. 외적 5. 각각의 크기 \n";
+		cin >> op;
+		switch (op)
+		{
+		case 1:
+			cout << "합: " << "(" << a.x + b.x << ", " << a.y + b.y << ", " << a.z + b.z << ")" << "\n";
+			break;
+		case 2:
+			cout << "차: " << "(" << a.x - b.x << ", " << a.y - b.y << ", " << a.z - b.z << ")" << "\n";
+			break;
+		case 3:
+			cout << "내적: " << (a.x * b.x) + (a.y *b.y) + (a.z * b.z) << "\n";
+			break;
+		case 4:
+			cout << "1. aㆍb 2. bㆍa\n";
+			cin >> d;
+			if (d == 1)
+				Det(a, b);
+			else if (d == 2)
+				Det(b, a);
+			else
+				cout << "잘못된 값입니다.\n";
+			break;
+		case 5:
+			cout << "첫번쨰 크기: " << sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+			cout << "두번쨰 크기: " << sqrt(b.x*b.x + b.y*b.y + b.z*b.z) <<"\n";
+			break;
+		default:
+			break;
+		}
+	}
+}
+void Det(Vector a, Vector b){
+	cout << "외적: " << "(" << (a.y * b.z) - (a.z * b.y) << ", " << (a.x * b.z) - (a.z * b.x) << ", " << (a.x * b.y) - (a.y * b.x) << ")" << "\n";
+}

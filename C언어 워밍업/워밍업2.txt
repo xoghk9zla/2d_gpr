@@ -1,0 +1,201 @@
+#include<iostream>
+
+using namespace std;
+
+struct Dot {
+	int x, y, z;
+};
+struct Distance {
+	Dot dot;
+	double d;
+	Distance *Next;
+};
+Distance *Head;
+int cnt = 0;
+
+void Arr2list(Dot a);//끝에서 제거
+void Arr2listH(Dot a);//머리에 추가
+void Insert(Distance d);//끝에 추가
+void InsertH(Distance d);//머리에 추가
+void Delete();//끝에서 제거
+void DeleteH();//머리에서 제거
+void Fmax();
+void Fmin();
+void Clean();
+void Print();
+int main(void) {
+	Dot a;
+	int op;
+	int i = 1;
+	while (i) {
+		cout << "옵션을 입력하세요.\n";
+		cout << "1.+(리스트맨위추가) 2.-(리스트마지막에서 제거) 3.e(리스트아래에 입력) 4.d(리스트위에서 제거) 5.c(리스트 초기화) 6.m(가장 먼 것 출력) 7.n(가장 가까운 것 출력) 8.q(종료)\n";
+		cin >> op;
+		switch (op)
+		{
+		case 1:
+			cout << "(x, y, z) 좌표를 입력해주세요.\n";
+			cin >> a.x >> a.y >> a.z;
+			Arr2list(a);
+			Print();
+			break;
+		case 2:
+			Delete();
+			break;
+		case 3:
+			cout << "(x, y, z) 좌표를 입력해주세요.\n";
+			cin >> a.x >> a.y >> a.z;
+			Arr2listH(a);
+			Print();
+			break;
+		case 4:
+			DeleteH();
+			break;
+		case 5:
+			Clean();
+			break;
+		case 6:
+			Fmax();
+			break;
+		case 7:
+			Fmin();
+			break;
+		case 8:
+			i = 0;
+			break;
+		default:
+			break;
+		}
+	}
+	return 0;
+}
+//리스트 생성
+void Arr2list(Dot a) {
+	Distance temp;
+	temp.dot.x = a.x;
+	temp.dot.y = a.y;
+	temp.dot.z = a.z;
+	temp.d = sqrt((temp.dot.x * temp.dot.x) + (temp.dot.y * temp.dot.y) + (temp.dot.z * temp.dot.z));
+	Insert(temp);
+}
+void Arr2listH(Dot a) {
+	Distance temp;
+	temp.dot.x = a.x;
+	temp.dot.y = a.y;
+	temp.dot.z = a.z;
+	temp.d = sqrt((temp.dot.x * temp.dot.x) + (temp.dot.y * temp.dot.y) + (temp.dot.z * temp.dot.z));
+	InsertH(temp);
+}
+void Insert(Distance d) {
+	Distance *Newnode = new Distance[sizeof(Distance)];
+	Newnode->dot.x = d.dot.x;
+	Newnode->dot.y = d.dot.y;
+	Newnode->dot.z = d.dot.z;
+	Newnode->d = d.d;
+	Newnode->Next = NULL;
+	++cnt;
+	if (Head == NULL) {
+		Head = Newnode;
+	}
+	else {
+		Distance *cur = Head;
+		while (cur->Next != NULL) {
+			cur = cur->Next;
+		}
+		cur->Next = Newnode;
+	}
+}
+void InsertH(Distance d) {
+	Distance *Newnode = new Distance[sizeof(Distance)];
+	Newnode->dot.x = d.dot.x;
+	Newnode->dot.y = d.dot.y;
+	Newnode->dot.z = d.dot.z;
+	Newnode->d = d.d;
+	Newnode->Next = NULL;
+	++cnt;
+	Newnode->Next = Head;
+	Head = Newnode;
+
+}
+void Delete() {
+	Distance *cur = Head;
+	if (Head == NULL) {
+	}
+	else if (Head->Next == NULL) {
+		Head = NULL;
+		delete Head;
+		--cnt;
+	}
+	else {
+		for (int i = 0; i < cnt - 2; ++i) {
+			cur = cur->Next;
+		}
+		cur->Next = NULL;
+		delete cur->Next;
+		--cnt;
+		Print();
+	}
+}
+void DeleteH() {
+	if (Head == NULL) {
+
+	}
+	else if (Head->Next == NULL) {
+		Head = NULL;
+		delete Head;
+		--cnt;
+	}
+	else {
+		Distance *temp = Head->Next;
+		Head = temp;
+		delete Head;
+		--cnt;
+	}
+}
+void Fmax() {
+	Distance *m = NULL;
+	Distance *cur = Head;
+	if (Head == NULL) {
+
+	}
+	else if (Head->Next == NULL) {
+		cout << "(" << Head->dot.x << ", " << Head->dot.y << ", " << Head->dot.z << ")" << " 거리: " << Head->d << "\n";
+	}
+	else {
+		while (cur->Next != NULL) {
+			m = (cur->d > cur->Next->d) ? cur : cur->Next;
+			cur = cur->Next;
+		}
+		cout << "(" << m->dot.x << ", " << m->dot.y << ", " << m->dot.z << ")" << " 거리: " << m->d << "\n";
+	}
+}
+void Fmin() {
+	Distance *m = NULL;
+	Distance *cur = Head;
+	if (Head == NULL) {
+	}
+	else if (Head->Next == NULL) {
+		cout << "(" << Head->dot.x << ", " << Head->dot.y << ", " << Head->dot.z << ")" << " 거리: " << Head->d << "\n";
+	}
+	else {
+		while (cur->Next != NULL) {
+			m = (cur->d < cur->Next->d) ? cur : cur->Next;
+			cur = cur->Next;
+		}
+		cout << "(" << m->dot.x << ", " << m->dot.y << ", " << m->dot.z << ")" << " 거리: " << m->d << "\n";
+	}
+}
+void Clean() {
+	Head = NULL;
+	cnt = 0;
+}
+void Print() {
+	Distance *cur = Head;
+	cout.precision(3);
+	while (cur->Next != NULL)
+	{
+		cout << "(" << cur->dot.x << ", " << cur->dot.y << ", " << cur->dot.z << ")" << " 거리: " << cur->d << "\n";
+		cur = cur->Next;
+	}
+	cout << "(" << cur->dot.x << ", " << cur->dot.y << ", " << cur->dot.z << ")" << " 거리: " << cur->d << " len: " << cnt << "\n";
+}

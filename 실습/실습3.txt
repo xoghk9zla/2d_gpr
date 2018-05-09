@@ -1,0 +1,78 @@
+#include <GL/glut.h>
+#include<time.h>
+#include <stdlib.h>
+
+GLvoid drawScene(GLvoid);
+GLvoid reshape(int w, int h);
+
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);    // glut 초기화
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);  // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 100);   // 윈도우의 위치 지정
+	glutInitWindowSize(800, 600);    // 윈도우의 크기 지정 
+	glutCreateWindow("실습3");   // 윈도우 생성 (윈도우 이름) 
+	glutDisplayFunc(drawScene);    // 출력 함수의 지정 
+	glutReshapeFunc(reshape);   // 다시 그리기 함수 지정 
+	glutMainLoop();    // 이벤트 처리 시작 
+}
+
+GLvoid drawScene() {     // 출력 함수 
+	srand((unsigned)time(NULL));
+	int sel = rand() % 3;
+
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);   // 설정된 색으로 젂체를 칠하기
+
+	glColor4f(0.0f, 0.0f, 0.0f, 1.0f);	//칸나누기
+	glBegin(GL_LINES);
+	glVertex2d(800 / 3, 0);
+	glVertex2d(800 / 3, 600);
+	glVertex2d(800 / 3 * 2, 0);
+	glVertex2d(800 / 3 * 2, 600);
+	glVertex2d(0, 600 / 3);
+	glVertex2d(800, 600 / 3);
+	glVertex2d(0, 600 / 3 * 2);
+	glVertex2d(800, 600 / 3 * 2);
+	glEnd();
+
+	glColor4f(0.25f, 0.75f, 0.5f, 1.0f);
+	for (int i = 0; i < 3; ++i){
+		for (int j = 0; j < 3; ++j){
+			glBegin(GL_LINE_LOOP);
+			if (sel == 0){
+				glVertex2d(90 + (800 / 3) * j, 500 - (600 / 3) * i);
+				glVertex2d(180 + (800 / 3) * j, 500 - (600 / 3) * i);
+			}
+			else if (sel == 1){
+				glVertex2d(130 + (800 / 3) * j, 550 - (600 / 3) * i);
+				glVertex2d(80 + (800 / 3) * j, 500 - (600 / 3) * i);
+				glVertex2d(180 + (800 / 3) * j, 500 - (600 / 3) * i);
+			}
+			else if (sel == 2){
+				glVertex2d(90 + (800 / 3) * j, 550 - (600 / 3) * i);
+				glVertex2d(90 + (800 / 3) * j, 450 - (600 / 3) * i);
+				glVertex2d(180 + (800 / 3) * j, 450 - (600 / 3) * i);
+				glVertex2d(180 + (800 / 3) * j, 550 - (600 / 3) * i);
+			}
+			else if (sel == 3){
+				glVertex2d(130 + (800 / 3) * j, 550 - (600 / 3) * i);
+				glVertex2d(80 + (800 / 3) * j, 500 - (600 / 3) * i);
+				glVertex2d(100 + (800 / 3) * j, 450 - (600 / 3) * i);
+				glVertex2d(160 + (800 / 3) * j, 450 - (600 / 3) * i);
+				glVertex2d(180 + (800 / 3) * j, 500 - (600 / 3) * i);
+			}
+			glEnd();
+			++sel;
+			sel = sel % 4;
+		}
+	}
+	
+
+	glFlush();      // 화면에 출력하기 
+}
+GLvoid reshape(int w, int h) {    // 다시 그리기 함수
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, w, 0.0, h, -1.0, 1.0);
+}

@@ -1,0 +1,371 @@
+#include<GL/glut.h>
+#include <math.h>
+#include <stdlib.h>
+#include <iostream>
+
+using namespace std;
+
+#define LEFT -400
+#define RIGHT 400
+#define TOP 300
+#define BOTTOM -300
+
+#define NULL 0
+
+#define SPEED 3
+
+///화면 컨트롤을 위한 기본 함수 선언
+GLvoid drawScene(GLvoid);
+GLvoid Reshape(int w, int h);
+void Keyboard(unsigned char key, int x, int y);
+void Mouse(int button, int state, int x, int y);
+void Motion(int x, int y);
+void TimerFunction(int value);
+void MoveTimerFunction(int value);
+void SetupRc();	// 필요한 변수 초기화
+void RectCut(int Case);	// 도형 자르기
+
+struct Point{
+	int x, y;
+};
+struct Object{
+	int x1, y1;
+	int x2, y2;
+	int x3, y3;
+	int x4, y4;
+	int x5, y5;
+};
+
+Object r1, r2;
+Point point[2];
+int cnt = 0;
+int dx1 = 0, dx2 = 0;
+int dy1 = 0, dy2 = 0;
+bool Click, Move;
+bool Left, Right, Top, Bottom;
+
+void main(int argc, char *argv[]){
+	//초기화 함수들 
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 0); //    윈도우의 위치지정 
+	glutInitWindowSize(800, 600); // 윈도우의 크기 지정 
+	glutCreateWindow("숙제1"); // 윈도우 생성 (윈도우 이름) 
+	SetupRc();	// 상태 변수 초기화
+	glutDisplayFunc(drawScene); // 출력 함수의 지정
+	glutKeyboardFunc(Keyboard);		// 키보드 입력
+	glutMouseFunc(Mouse);	// 마우스 입력
+	glutMotionFunc(Motion);	// 마우스 움직임
+	//glutTimerFunc(0, MoveTimerFunction, 0);
+	glutReshapeFunc(Reshape); // 다시 그리기 함수의 지정 
+	glutMainLoop();
+}
+// 윈도우 출력 함수
+GLvoid drawScene(GLvoid) {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);    // 바탕색을 'black' 로 지정
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 설정된 색으로 젂체를 칠하기
+
+	glColor3f(1.0, 0.5, 1.0);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(r1.x1 + dx1, r1.y1 + dy1);
+	glVertex2f(r1.x2 + dx1, r1.y2 + dy1);
+	glVertex2f(r1.x3 + dx1, r1.y3 + dy1);
+	glVertex2f(r1.x4 + dx1, r1.y4 + dy1);
+	glVertex2f(r1.x5 + dx1, r1.y5 + dy1);
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(r2.x1 + dx2, r2.y1 + dy2);
+	glVertex2f(r2.x2 + dx2, r2.y2 + dy2);
+	glVertex2f(r2.x3 + dx2, r2.y3 + dy2);
+	glVertex2f(r2.x4 + dx2, r2.y4 + dy2);
+	glVertex2f(r2.x5 + dx2, r2.y5 + dy2);
+	glEnd();
+
+	glutSwapBuffers();
+}
+void SetupRc() {
+	r1.x1 = 200, r1.y1 = 200;
+	r1.x2 = 200, r1.y2 = 100;
+	r1.x3 = 300, r1.y3 = 100;
+	r1.x4 = 300, r1.y4 = 200;
+	r1.x5 = 300, r1.y5 = 200;
+
+	r2.x1 = 200, r2.y1 = 200;
+	r2.x2 = 200, r2.y2 = 100;
+	r2.x3 = 300, r2.y3 = 100;
+	r2.x4 = 300, r2.y4 = 200;
+	r2.x5 = 300, r2.y5 = 200;
+
+	cnt = 0;
+	Click = false;
+	Left = false, Right = false, Top = false, Bottom = false;
+}
+GLvoid Reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	glOrtho(LEFT, RIGHT, BOTTOM, TOP, -1.0, 1.0);
+}
+void Mouse(int button, int state, int x, int y){
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		Click = true;
+	}
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+		Click = false;
+		if (Left == true && Right == true){
+			if (point[0].x == 200){
+				r1.x2 = point[0].x, r1.y2 = point[0].y;
+				r2.x1 = point[0].x, r2.y1 = point[0].y;
+
+				r1.x3 = point[1].x, r1.y3 = point[1].y;
+				r2.x4 = point[1].x, r2.y4 = point[1].y;
+				r2.x5 = point[1].x, r2.y5 = point[1].y;
+			}
+			else{
+				r1.x2 = point[1].x, r1.y2 = point[1].y;
+				r2.x1 = point[1].x, r2.y1 = point[1].y;
+
+				r1.x3 = point[0].x, r1.y3 = point[0].y;
+				r2.x4 = point[0].x, r2.y4 = point[0].y;
+				r2.x5 = point[0].x, r2.y5 = point[0].y;
+			}
+			RectCut(1);
+		}
+		else if (Left == true && Top == true){
+			if (point[0].x == 200){
+				r1.x2 = point[0].x, r1.y2 = point[0].y;
+				r2.x1 = point[0].x, r2.y1 = point[0].y;
+
+				r1.x3 = point[1].x, r1.y3 = point[1].y;
+				r1.x4 = point[1].x, r1.y4 = point[1].y;
+				r1.x5 = point[1].x, r1.y5 = point[1].y;
+				r2.x5 = point[1].x, r2.y5 = point[1].y;
+			}
+			else{
+				r1.x2 = point[1].x, r1.y2 = point[1].y;
+				r2.x1 = point[1].x, r2.y1 = point[1].y;
+
+				r1.x3 = point[0].x, r1.y3 = point[0].y;
+				r1.x4 = point[0].x, r1.y4 = point[0].y;
+				r1.x5 = point[0].x, r1.y5 = point[0].y;
+				r2.x5 = point[0].x, r2.y5 = point[0].y;
+			}
+			RectCut(2);
+		}
+		else if (Left == true && Bottom == true){
+			if (point[0].x == 200){
+				r1.x2 = point[0].x, r1.y2 = point[0].y;
+				r1.x4 = r1.x3, r1.y4 = r2.y3;
+				r2.x1 = point[0].x, r2.y1 = point[0].y;
+
+				r1.x3 = point[1].x, r1.y3 = point[1].y;
+				r2.x3 = point[1].x, r2.y3 = point[1].y;
+				r2.x4 = point[1].x, r2.y4 = point[1].y;
+				r2.x5 = point[1].x, r2.y5 = point[1].y;
+			}
+			else{
+				r1.x2 = point[1].x, r1.y2 = point[1].y;
+				r1.x4 = r1.x3, r1.y4 = r2.y3;
+				r2.x1 = point[1].x, r2.y1 = point[1].y;
+
+				r1.x3 = point[0].x, r1.y3 = point[0].y;
+				r2.x3 = point[0].x, r2.y3 = point[0].y;
+				r2.x4 = point[0].x, r2.y4 = point[0].y;
+				r2.x5 = point[0].x, r2.y5 = point[0].y;
+			}
+			RectCut(3);
+		}
+		else if (Right == true && Top == true){
+			if (point[0].x == 300){
+				r1.x4 = point[0].x, r1.y4 = point[0].y;
+				r2.x1 = point[0].x, r2.y1 = point[0].y;
+
+				r1.x5 = point[1].x, r1.y5 = point[1].y;
+				r2.x2 = point[1].x, r2.y2 = point[1].y;
+				r2.x3 = point[1].x, r2.y3 = point[1].y;
+				r2.x4 = point[1].x, r2.y4 = point[1].y;
+			}
+			else{
+				r1.x4 = point[1].x, r1.y4 = point[1].y;
+				r2.x1 = point[1].x, r2.y1 = point[1].y;
+
+				r1.x5 = point[0].x, r1.y5 = point[0].y;
+				r2.x2 = point[0].x, r2.y2 = point[0].y;
+				r2.x3 = point[0].x, r2.y3 = point[0].y;
+				r2.x4 = point[0].x, r2.y4 = point[0].y;
+			}
+			RectCut(4);
+		}
+		else if (Right == true && Bottom == true){
+			if (point[0].x == 300){
+				r1.x4 = point[0].x, r1.y4 = point[0].y;
+				r2.x1 = point[0].x, r2.y1 = point[0].y;
+
+				r1.x3 = point[1].x, r1.y3 = point[1].y;
+				r2.x2 = r2.x3, r2.y2 = r2.y3;
+				r2.x4 = point[1].x, r2.y4 = point[1].y;
+				r2.x5 = point[1].x, r2.y5 = point[1].y;
+			}
+			else{
+				r1.x4 = point[1].x, r1.y4 = point[1].y;
+				r2.x1 = point[1].x, r2.y1 = point[1].y;
+
+				r1.x3 = point[0].x, r1.y3 = point[0].y;
+				r2.x2 = r2.x3, r2.y2 = r2.y3;
+				r2.x4 = point[0].x, r2.y4 = point[0].y;
+				r2.x5 = point[0].x, r2.y5 = point[0].y;
+			}
+			RectCut(5);
+		}
+		else if (Top == true && Bottom == true){
+			if (point[0].y == 200){
+				r1.x4 = point[0].x, r1.y4 = point[0].y;
+				r1.x5 = point[0].x, r1.y5 = point[0].y;
+				r2.x1 = point[0].x, r2.y1 = point[0].y;
+
+				r1.x3 = point[1].x, r1.y3 = point[1].y;
+				r2.x2 = point[1].x, r2.y2 = point[1].y;
+			}
+			else{
+				r1.x4 = point[1].x, r1.y4 = point[1].y;
+				r1.x5 = point[1].x, r1.y5 = point[1].y;
+				r2.x1 = point[1].x, r2.y1 = point[1].y;
+
+				r1.x3 = point[0].x, r1.y3 = point[0].y;
+				r2.x2 = point[0].x, r2.y2 = point[0].y;
+			}
+			RectCut(6);
+		}
+		glutPostRedisplay();
+	}
+}
+void Motion(int x, int y) {
+	if (Click == true){
+		// 왼쪽
+		if (x + LEFT == r1.x1 && (r1.y1 - 100 < (600 - y) + BOTTOM && (600 - y) + BOTTOM < r1.y1)){
+			Left = true;
+			point[cnt].x = x + LEFT;
+			point[cnt].y = (600 - y) + BOTTOM;
+			if (cnt < 1)
+				cnt += 1;
+		}
+		// 오른쪽
+		else if (x + LEFT == r1.x3 && (r1.y1 - 100 < (600 - y) + BOTTOM && (600 - y) + BOTTOM < r1.y1)){
+			Right = true;
+			point[cnt].x = x + LEFT;
+			point[cnt].y = (600 - y) + BOTTOM;
+			if (cnt < 1)
+				cnt += 1;
+		}
+		// 위쪽
+		else if ((600 - y) + BOTTOM == r1.y1 && r1.x1 < x + LEFT && x + LEFT < r1.x1 + 100){
+			Top = true;
+			point[cnt].x = x + LEFT;
+			point[cnt].y = (600 - y) + BOTTOM;
+			if (cnt < 1)
+				cnt += 1;
+		}
+		// 아래쪽
+		else if ((600 - y) + BOTTOM == r1.y2 && r1.x1 < x + LEFT && x + LEFT < r1.x1 + 100){
+			Bottom = true;
+			point[cnt].x = x + LEFT;
+			point[cnt].y = (600 - y) + BOTTOM;
+			if (cnt < 1)
+				cnt += 1;
+		}
+	}
+}
+void RectCut(int Case){
+	// Left == true && Right == true
+	if (Case == 1){
+		if (((r1.y1 - r1.y2) + (r1.y4 - r1.y3)) * (r1.x4 - r1.x1) < ((r2.y1 - r2.y2) + (r2.y4 - r2.y3)) * (r2.x4 - r2.x1)){
+			glutTimerFunc(0, TimerFunction, 1);
+		}
+		else{
+			glutTimerFunc(0, TimerFunction, 2);
+		}
+	}
+	// Left == true && Top == true
+	else if (Case == 2){
+		if (((r1.y1 - r1.y2) * (r1.x4 - r1.x1)) / 2 > 400 - ((r1.y1 - r1.y2) * (r1.x4 - r1.x1)) / 2){
+			glutTimerFunc(0, TimerFunction, 1);
+		}
+		else{
+			glutTimerFunc(0, TimerFunction, 2);
+		}
+	}
+	// Left == true && Bottom == true
+	else if (Case == 3){
+		if (((r2.y1 - r2.y2) * (r2.x4 - r2.x1)) / 2 < 400 - ((r2.y1 - r2.y2) * (r2.x4 - r2.x1)) / 2){
+			glutTimerFunc(0, TimerFunction, 1);
+		}
+		else{
+			glutTimerFunc(0, TimerFunction, 2);
+		}
+	}
+	// Right == true && Top == true
+	else if (Case == 4){
+		if (((r2.y2 - r2.y3) * (r2.x4 - r2.x1)) / 2 > 400 - ((r2.y2 - r2.y3) * (r2.x4 - r2.x1)) / 2){
+			glutTimerFunc(0, TimerFunction, 1);
+		}
+		else{
+			glutTimerFunc(0, TimerFunction, 2);
+		}
+	}
+	// Right == true && Bottom == true
+	else if (Case == 5){
+		if (((r2.y1 - r2.y2) * (r2.x4 - r2.x1)) / 2 > 400 - ((r2.y1 - r2.y2) * (r2.x4 - r2.x1)) / 2){
+			glutTimerFunc(0, TimerFunction, 1);
+		}
+		else{
+			glutTimerFunc(0, TimerFunction, 2);
+		}
+	}
+	// Top == true && Bottom == true
+	else if (Case == 6){
+		if (((r1.x4 - r1.x1) + (r1.x3 - r1.x2)) * (r1.y1 - r1.y2) < ((r2.x4 - r2.x1) + (r2.x3 - r2.x2)) * (r2.y1 - r2.y2)){
+			glutTimerFunc(0, TimerFunction, 1);
+		}
+		else{
+			glutTimerFunc(0, TimerFunction, 2);
+		}
+	}
+}
+void TimerFunction(int value) {
+	if (value == 1)
+		dy1 -= SPEED;
+	else
+		dy2 -= SPEED;
+	glutPostRedisplay();
+	glutTimerFunc(100, TimerFunction, value); // 타이머
+}
+void MoveTimerFunction(int value){
+	if (Move){
+		dx1 += 1;
+		dx2 += 1;
+		if (dx1 > 100)
+			Move = false;
+	}
+	else{
+		dx1 -= 1;
+		dx2 -= 1;
+		if (dx1 < -500)
+			Move = true;
+	}
+	glutPostRedisplay();
+	glutTimerFunc(100, MoveTimerFunction, value); // 타이머
+}
+void Keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'i':
+	case 'I':
+		SetupRc();
+		glutPostRedisplay();
+		break;
+	case 'q':
+	case 'Q':
+		exit(0);
+		break;
+	default:
+		break;
+	}
+}

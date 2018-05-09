@@ -1,0 +1,152 @@
+#include<iostream>
+
+using namespace std;
+
+int main(void) {
+	int a[3][3];
+	int b[3][3];
+	int c[3][3];
+	int d[4][4];
+	int result;
+	char op;
+
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			a[i][j] = rand() % 2;
+			b[i][j] = rand() % 2;
+		}
+	}
+	while (1){
+		cout << "1. M(행렬의 곱셈) 2. A(행렬의 덧셈) 3. D(행렬의 뺄셈) 4. R(행렬식의 값) 5. H(3x3행렬->4x4행렬)\n";
+		cin >> op;
+
+		switch (op)
+		{
+		case 'A':
+		case 'a':
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					c[i][j] = a[i][j] + b[i][j];
+				}
+			}
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					cout << "l " << a[i][j] << " l  ";
+					if (i == 1 && j == 2)
+						cout << "+";
+					else
+						cout << " ";
+				}
+				for (int j = 0; j < 3; ++j) {
+					cout << "l " << b[i][j] << " l  ";
+					if (i == 1 && j == 2)
+						cout << "=";
+					else
+						cout << " ";
+				}
+				for (int j = 0; j < 3; ++j) {
+					cout << "l " << c[i][j] << " l";
+				}
+				cout << "\n";
+			}
+			break;
+		case 'D':
+		case 'd':
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					c[i][j] = a[i][j] - b[i][j];
+				}
+			}
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					cout << "l " << a[i][j] << " l  ";
+					if (i == 1 && j == 2)
+						cout << "-";
+					else
+						cout << " ";
+				}
+				for (int j = 0; j < 3; ++j) {
+					cout << "l " << b[i][j] << " l  ";
+					if (i == 1 && j == 2)
+						cout << "=";
+					else
+						cout << " ";
+				}
+				for (int j = 0; j < 3; ++j) {
+					cout << "l " << c[i][j] << " l";
+				}
+				cout << "\n";
+			}
+			break;
+		case 'M':
+		case 'm':
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					c[i][j] = (a[i][0] * b[0][j]) + (a[i][1] * b[1][j]) + (a[i][2] * b[2][j]);
+				}
+			}
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					cout << " l " << a[i][j] << " l ";
+					if (i == 1 && j == 2)
+						cout << "X";
+					else
+						cout << " ";
+				}
+				for (int j = 0; j < 3; ++j) {
+					cout << " l " << b[i][j] << " l ";
+					if (i == 1 && j == 2)
+						cout << "=";
+					else
+						cout << " ";
+				}
+				for (int j = 0; j < 3; ++j) {
+					cout << " l " << c[i][j] << " l ";
+				}
+				cout << "\n";
+			}
+			break;
+		case 'R':
+		case 'r':
+			result = (a[0][0] * (a[1][1] * a[2][2] - a[1][2] * a[2][1])) - (a[0][1] * (a[1][0] * a[2][1] - a[1][2] * a[2][0])) + (a[0][2] * (a[1][0] * a[2][1] - a[1][1] * a[2][0]));
+
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					cout << " l " << a[i][j] << " l ";
+				}
+				cout << "\n";
+			}
+			cout << result << "\n";
+			break;
+		case 'H':
+		case 'h':
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					d[i][j] = a[i][j];
+				}
+			}
+			for (int i = 0; i < 3; ++i) {
+				d[i][3] = 0;
+				d[3][i] = 0;
+				d[3][3] = 1;
+			}
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					cout << "l " << a[i][j] << " l  ";
+				}
+				cout << "\n";
+			}
+			cout << "\n";
+			for (int i = 0; i < 4; ++i) {
+				for (int j = 0; j < 4; ++j) {
+					cout << "l " << d[i][j] << " l  ";
+				}
+				cout << "\n";
+			}
+			break;
+		default:
+			cout << "다시 입력해주십시오.\n";
+			break;
+		}
+	}
+}

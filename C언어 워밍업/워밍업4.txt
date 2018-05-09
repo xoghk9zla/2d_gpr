@@ -1,0 +1,62 @@
+#include<iostream>
+#include <conio.h>
+using namespace std;
+
+#define LEFT   75      // 좌측방향키
+#define RIGHT  77      // 우측방향키
+#define UP     72      // 위쪽방향키
+#define DOWN   80      // 아래방향키
+
+struct Rect{
+	int x1, y1, d;
+};
+void Print(Rect r1, Rect r2);
+void Check(Rect r1, Rect r2);
+
+void main(){
+	Rect r1, r2;
+	char op;
+	r1.x1 = 400;
+	r1.y1 = 400;	
+	r1.d = 50;
+	r2.x1 = 600;
+	r2.y1 = 500;
+	r2.d = 50;
+	Print(r1, r2);
+	while (1){
+		op = _getch();
+		switch (op){
+		case UP:
+			--r2.y1;
+			Check(r1, r2);
+			break;
+		case DOWN:
+			++r2.y1;
+			Check(r1, r2);
+			break;
+		case LEFT:
+			--r2.x1;
+			Check(r1, r2);
+			break;
+		case RIGHT:
+			++r2.x1;
+			Check(r1, r2);
+			break;
+		default:
+			break;
+		}
+	}
+	Print(r1, r2);
+}
+void Print(Rect r1, Rect r2){
+	cout << "(" << r1.x1 << ", " << r1.y1 << ")변의 길이: " << r1.d << " (" << r2.x1 << ", " << r2.y1 << ") 변의 길이: " << r2.d << "\n";
+}
+void Check(Rect r1, Rect r2){
+	if ((r1.x1 <= r2.x1 && r2.x1 <= r1.x1 + r1.d) && (r1.y1 <= r2.y1 && r2.y1 <= r1.y1 + r1.d) || (r1.x1 <= r2.x1 + r2.d && r2.x1 + r2.d <= r1.x1 + r1.d) && (r1.y1 <= r2.y1 && r2.y1 <= r1.y1 + r1.d) || (r1.x1 <= r2.x1 && r2.x1 <= r1.x1 + r1.d) && (r1.y1 <= r2.y1 + r2.d && r2.y1 + r2.d <= r1.y1 + r1.d) || (r1.x1 <= r2.x1 + r2.d && r2.x1 + r2.d <= r1.x1 + r1.d) && (r1.y1 <= r2.y1 + r2.d && r2.y1 + r2.d <= r1.y1 + r1.d)){
+		Print(r1, r2);
+		cout << "두 사각형이 겹쳐있습니다.\n";
+	}
+	else{
+		Print(r1, r2);
+	}
+}

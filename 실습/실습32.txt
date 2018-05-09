@@ -1,0 +1,471 @@
+#pragma warning(disable:4996)
+#include <GL/glut.h>
+#include <Windows.h>
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+
+///화면 컨트롤을 위한 기본 함수 선언
+GLvoid drawScene(GLvoid);
+GLvoid Reshape(int w, int h);
+void Keyboard(unsigned char key, int x, int y);
+void SetupRc();	// 필요한 변수 초기화
+void TimerFunction(int value);
+GLubyte * LoadDIBitmap(const char *filename, BITMAPINFO **info);
+float TransX = 0.0, TransY = 0.0, TransZ = 0.0;
+float LookX = 0.0, LookY = 0.0, LookZ = 0.0;
+float Upper_Y = 0.0, Upper_Z = 0.0;
+float Front_Y = 0.0, Front_Z = 0.0;
+bool Upper = false, Front = false;
+GLenum Shade = GL_SMOOTH;
+GLuint textures[2];
+GLubyte *pBytes; // 데이터를 가리킬 포인터
+BITMAPINFO *info; // 비트맵 헤더 저장할 변수 
+
+
+void main(int argc, char *argv[])
+{
+	//초기화 함수들 
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // 디스플레이 모드 설정 
+	glutInitWindowPosition(100, 0); //??? 윈도우의 위치지정 
+	glutInitWindowSize(800, 600); // 윈도우의 크기 지정 
+	glutCreateWindow("실습32"); // 윈도우 생성 (윈도우 이름) 
+	SetupRc();	// 상태 변수 초기화
+	glutDisplayFunc(drawScene); // 출력 함수의 지정
+	glutKeyboardFunc(Keyboard);	// 키보드 입력
+	glutReshapeFunc(Reshape); // 다시 그리기 함수의 지정 
+	glutTimerFunc(1000, TimerFunction, 0);
+	glutMainLoop();
+}
+// 윈도우 출력 함수
+GLvoid drawScene(GLvoid) {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// 바탕색을 'black' 로 지정
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 설정된 색으로 젂체를 칠하기
+
+	glGenTextures(2, textures);
+
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	pBytes = LoadDIBitmap("dice1.bmp", &info);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 200, 200, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, pBytes);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	pBytes = LoadDIBitmap("dice2.bmp", &info);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 200, 200, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, pBytes);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_MODULATE);
+
+	glEnable(GL_TEXTURE_2D);
+
+	glFrontFace(GL_CCW);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glPushMatrix();
+
+	glTranslatef(TransX, TransY, TransZ);	
+
+	glPushMatrix();
+
+	glRotatef(30.0, 1.0, 0.0, 0.0);
+	glRotatef(-45.0, 0.0, 1.0, 0.0);
+
+	glRotatef(LookX, 1.0, 0.0, 0.0);
+	glRotatef(LookY, 0.0, 1.0, 0.0);
+	glRotatef(LookZ, 0.0, 0.0, 1.0);
+
+	glBegin(GL_LINES);
+
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(400.0, 0.0, 0.0);
+
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 400.0, 0.0);
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(0.0, 0.0, 400.0);
+	glVertex3f(0.0, 0.0, 0.0);
+
+	glEnd();
+
+	// xz평면 아래
+	glPushMatrix();
+
+	glShadeModel(Shade);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+
+	glBegin(GL_QUADS);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0, 0.0, 0.0);
+
+	glTexCoord2f(1.0f, 0.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(0.0, 0.0, 200.0);
+
+	glTexCoord2f(1.0f, 1.0f);
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(200.0, 0.0, 200.0);
+
+	glTexCoord2f(0.0f, 1.0f);
+	glColor3f(0.0f, 0.0, 1.0f);
+	glVertex3f(200.0, 0.0, 0.0);
+
+	glEnd();
+
+	glPopMatrix();
+
+	// xz평면 위
+	glPushMatrix();
+
+	glShadeModel(Shade);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	glBegin(GL_QUADS);
+
+	glTexCoord2f(0.0f, 1.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.0, 200.0, 0.0);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(0.0, 200.0 + Upper_Y, 200.0 - Upper_Z);
+
+	glTexCoord2f(1.0f, 0.0f);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex3f(200.0, 200.0 + Upper_Y, 200.0 - Upper_Z);
+
+	glTexCoord2f(1.0f, 1.0f);
+	glColor3f(0.0f, 1.0, 1.0f);
+	glVertex3f(200.0, 200.0, 0.0);
+
+	glEnd();
+
+	glPopMatrix();
+
+	// xy평면 앞
+	glPushMatrix();
+
+	glShadeModel(Shade);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+
+	glBegin(GL_QUADS);
+
+	glTexCoord2f(0.0f, 1.0f);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(0.0, 200.0 - Front_Y, 200.0 + Front_Z);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(0.0, 0.0, 200.0);
+
+	glTexCoord2f(1.0f, 0.0f);
+	glColor3f(1.0f, 0.0, 1.0f);
+	glVertex3f(200.0, 0.0, 200.0);
+
+	glTexCoord2f(1.0f, 1.0f);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex3f(200.0, 200.0 - Front_Y, 200.0 + Front_Z);
+
+	glEnd();
+
+	glPopMatrix();
+
+	// xy평면 뒤
+	glPushMatrix();
+
+	glShadeModel(Shade);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+
+	glBegin(GL_QUADS);
+
+	glTexCoord2f(0.0f, 1.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.0, 200.0, 0.0);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0, 0.0, 0.0);
+
+	glTexCoord2f(1.0f, 0.0f);
+	glColor3f(0.0f, 0.0, 1.0f);
+	glVertex3f(200.0, 0.0, 0.0);
+
+	glTexCoord2f(1.0f, 1.0f);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(200.0, 200.0, 0.0);
+
+	glEnd();
+
+	glPopMatrix();
+
+	// yz평면 왼쪽
+	glPushMatrix();
+
+	glShadeModel(Shade);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(1.0f, 1.0f);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(0.0, 200.0, 200.0);
+
+	glTexCoord2f(1.0f, 0.0f);
+	glColor3f(1.0f, 0.0, 0.0f);
+	glVertex3f(0.0, 0.0, 200.0);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0, 0.0, 0.0);
+
+	glTexCoord2f(0.0f, 1.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.0, 200.0, 0.0);
+
+	glEnd();
+
+	glPopMatrix();
+
+	// yz평면 오른쪽
+	glPushMatrix();
+
+	glShadeModel(Shade);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, 1.0f);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex3f(200.0, 200.0, 200.0);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glColor3f(1.0f, 0.0, 1.0f);
+	glVertex3f(200.0, 0.0, 200.0);
+
+	glTexCoord2f(1.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(200.0, 0.0, 0.0);
+
+	glTexCoord2f(1.0f, 1.0f);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(200.0, 200.0, 0.0);
+
+	glEnd();
+
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glPopMatrix();
+
+	glutSwapBuffers();
+}
+void SetupRc() {
+	TransX = 0.0, TransY = 0.0, TransZ = 0.0;
+	LookX = 0.0, LookY = 0.0, LookZ = 0.0;	
+	glEnable(GL_DEPTH_TEST);
+}
+GLvoid Reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	// 모델링 변환 설정: 디스플레이 콜백 함수에서 모델 변환 적용하기 위하여 Matrix mode 저장
+	// 원근 투영을 사용하는 경우:
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60.0f, w / h, 1.0, 3000.0);
+	// 관측 변환: 카메라의 위치 설정 (필요한 경우, 다른 곳에 설정 가능)
+	gluLookAt(0.0, 0.0, 1000.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+}
+void Keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'w':
+	case 'W':
+		TransY += 0.5;
+		glutPostRedisplay();
+		break;
+	case 's':
+	case 'S':
+		TransY -= 0.5;
+		glutPostRedisplay();
+		break;
+	case 'a':
+	case 'A':
+		TransX -= 0.5;
+		glutPostRedisplay();
+		break;
+	case 'd':
+	case 'D':
+		TransX += 0.5;
+		glutPostRedisplay();
+		break;
+	case '+':
+		TransZ += 0.5;
+		glutPostRedisplay();
+		break;
+	case '-':
+		TransZ -= 0.5;
+		glutPostRedisplay();
+		break;
+	case 'x':
+	case 'X':
+		LookX++;
+		glutPostRedisplay();
+		break;
+	case 'y':
+	case 'Y':
+		LookY++;
+		glutPostRedisplay();
+		break;
+	case 'z':
+	case 'Z':
+		LookZ++;
+		glutPostRedisplay();
+		break;
+	case '1':
+		if (Shade == GL_SMOOTH)
+			Shade = GL_FLAT;
+		else
+			Shade = GL_SMOOTH;
+		glutPostRedisplay();
+		break;
+	case '2':
+		if (glIsEnabled(GL_DEPTH_TEST))
+			glDisable(GL_DEPTH_TEST);
+		else
+			glEnable(GL_DEPTH_TEST);
+		glutPostRedisplay();
+		break;
+	case '3':
+		if (glIsEnabled(GL_CULL_FACE))
+			glDisable(GL_CULL_FACE);
+		else
+			glEnable(GL_CULL_FACE);
+		glutPostRedisplay();
+		break;
+	case '4':
+		if (Upper){
+			Upper = false;
+		}
+		else{
+			Upper = true;
+		}
+		glutPostRedisplay();
+		break;
+	case '5':
+		if (Front){
+			Front = false;
+		}
+		else{
+			Front = true;
+		}
+		glutPostRedisplay();
+		break;
+	case 'i':
+	case 'I':
+		SetupRc();
+		glutPostRedisplay();
+		break;
+	case 'q':
+	case 'Q':
+		exit(0);
+		break;
+	default:
+		break;
+	}
+}
+void TimerFunction(int value) {
+	//++LookY;
+	if (Upper){
+		if (Upper_Y < 200 && Upper_Z < 200){
+			Upper_Y += 5;
+			Upper_Z += 5;
+		}
+	}
+	else{
+		if (Upper_Y > 0 && Upper_Z > 0){
+			Upper_Y -= 5;
+			Upper_Z -= 5;
+		}
+	}
+
+	if (Front){
+		if (Front_Y < 200 && Front_Z < 200){
+			Front_Y += 5;
+			Front_Z += 5;
+		}
+	}
+	else{
+		if (Front_Y > 0 && Front_Z > 0){
+			Front_Y -= 5;
+			Front_Z -= 5;
+		}
+	}
+	glutPostRedisplay();
+	glutTimerFunc(100, TimerFunction, value); // 타이머
+}
+GLubyte * LoadDIBitmap(const char *filename, BITMAPINFO **info){
+	FILE *fp;
+	GLubyte *bits;
+	int bitsize, infosize;
+	BITMAPFILEHEADER header;
+
+	// 바이너리 읽기 모드로 파일을 연다
+	if ( (fp = fopen(filename, "rb")) == NULL )
+		return NULL; 
+	// 비트맵 파일 헤더를 읽는다.
+	if ( fread (&header, sizeof(BITMAPFILEHEADER), 1, fp) < 1 ){ 
+		fclose(fp);   return NULL;  
+	} 
+
+	// 파일이 BMP 파일인지 확인한다. 
+	if ( header.bfType != 'MB' ) {
+		fclose(fp);
+		return NULL;
+	} 
+	// BITMAPINFOHEADER 위치로 갂다.
+	infosize = header.bfOffBits - sizeof (BITMAPFILEHEADER); 
+
+	// 비트맵 이미지 데이터를 넣을 메모리 할당을 한다.
+	if ( (*info = (BITMAPINFO *)malloc(infosize)) == NULL ) { 
+		fclose(fp); 
+		exit (0); 
+		return NULL; 
+	} 
+
+	// 비트맵 인포 헤더를 읽는다.
+	if ( fread (*info, 1, infosize, fp) < (unsigned int)infosize ) { 
+		free (*info); 
+		fclose(fp); 
+		return NULL;  
+	} 
+
+	// 비트맵의 크기 설정  
+	if ((bitsize = (*info)->bmiHeader.biSizeImage) == 0){
+		bitsize = ((*info)->bmiHeader.biWidth*(*info)->bmiHeader.biBitCount + 7) / 8.0 *  abs((*info)->bmiHeader.biHeight);
+	}
+	// 비트맵의 크기만큼 메모리를 할당한다.  
+	if ( (bits = (unsigned char *)malloc(bitsize) ) == NULL ) {
+		free (*info);
+		fclose(fp); 
+		return NULL; 
+	} 
+
+	// 비트맵 데이터를 bit(GLubyte 타입)에 저장한다.
+	if ( fread(bits, 1, bitsize, fp) < (unsigned int)bitsize ) {
+		free (*info); free (bits); 
+		fclose(fp); 
+		return NULL; 
+	} 
+
+	fclose(fp);
+	return bits;
+}

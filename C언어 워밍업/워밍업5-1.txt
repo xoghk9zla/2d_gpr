@@ -1,0 +1,64 @@
+#include<iostream>
+#include<time.h>
+#include <conio.h>
+#include <stdlib.h>
+using namespace std;
+
+void Map(int map[][50]);
+void main() {
+	int map[50][50];
+	char op = 0;
+	srand((unsigned)time(NULL));
+	while (op != 'q') {
+		Map(map);
+		op = _getch();
+		system("cls");
+	}
+
+}
+void Map(int map[][50]) {
+	int a = 0, b = 0, k = 0;
+	for (int i = 0; i < 50; ++i) {//배열 초기화
+		for (int j = 0; j < 50; ++j) {
+			map[i][j] = 1;
+		}
+	}
+	map[0][0] = 0;
+
+	while (a + 1 < 50 && b + 1 < 50) {//미로생성
+
+		k = rand() % 4;
+		if (k == 0 && map[a][b + 1] == 1) {
+			map[a][b + 1] = 0;
+			++b;
+		}
+		else if (k == 1 && map[a + 1][b] == 1) {
+			map[a + 1][b] = 0;
+			++a;
+		}
+		else if (k == 2 && map[a][b - 1] == 1 && b > 1) {
+			map[a][b - 1] = 0;
+			--b;
+		}
+	}
+	if (a == 49) {
+		for (; b < 49; ++b)
+			map[49][b + 1] = 0;
+	}
+	else if (b == 49) {
+		for (; a < 49; ++a)
+			map[a + 1][49] = 0;
+
+	}
+	a = 0, b = 0;
+	map[0][0] = 0;
+	for (int i = 0; i < 50; ++i) {//미로 출력
+		for (int j = 0; j < 50; ++j) {
+			if (map[i][j] == 0)
+				cout << "□";
+			else
+				cout << "■";
+		}
+		cout << "\n";
+	}
+}
